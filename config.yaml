@@ -1,0 +1,27 @@
+# iMES 设备洞察 Agent 应用配置
+# 该文件对应课程《第5章 项目初始化：项目目录结构&开发范式约定》中的 app_config
+# 运行时由 core/config.py 读取，可被环境变量(.env)覆盖
+
+# 智能体(Agent)运行配置
+agent:
+  name: "equipment_insight"
+  max_iterations: 12          # ReAct 最大迭代轮次
+  max_retries: 3              # LLM / 工具调用失败最大重试次数
+  retry_interval: 1.0         # 重试间隔(秒)
+
+# 大语言模型(LLM)配置 —— 兼容 OpenAI 协议，默认对接 DeepSeek
+llm:
+  provider: "openai"          # openai(真实) | mock(本地演示，无需 API Key)
+  base_url: "https://api.deepseek.com"
+  api_key: ""                 # 留空则自动回退到 mock 模式
+  model_name: "deepseek-chat"
+  temperature: 0.0
+  max_tokens: 2048
+
+# MCP 协议配置（参考课程《第6章 MCP协议初识》，基础框架预留扩展位）
+mcp:
+  servers: []
+
+# 数据源配置（基础框架使用内置样本数据，后续可替换为真实时序库/数仓）
+data_source:
+  use_sample_data: true

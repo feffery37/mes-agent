@@ -1,0 +1,30 @@
+# ===== Python / uv =====
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# ===== 环境变量 / 密钥（保留 .env.example 作为模板） =====
+.env
+.env.*
+!.env.example
+
+# ===== Node（ui/ 前端） =====
+ui/node_modules/
+ui/.next/
+ui/out/
+ui/.vercel/
+ui/coverage/
+ui/npm-debug.log*
+
+# ===== 日志 / 编辑器 / 系统文件 =====
+*.log
+.DS_Store
+.idea/
+.vscode/

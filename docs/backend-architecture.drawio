@@ -1,0 +1,115 @@
+<mxGraphModel dx="1100" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="1020" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+
+    <!-- 标题 -->
+    <mxCell id="title" value="iMES 设备洞察 Agent · 后端架构（DDD 分层 + 依赖倒置）" style="text;html=1;strokeColor=none;fillColor=none;fontSize=16;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="40" y="24" width="700" height="40" as="geometry" />
+    </mxCell>
+
+    <!-- 前端 -->
+    <mxCell id="fe" value="前端 Next.js（:3000）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="760" y="30" width="260" height="42" as="geometry" />
+    </mxCell>
+
+    <!-- 接口层 -->
+    <mxCell id="L_int" value="interfaces / 接口层" style="swimlane;html=1;startSize=26;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="40" y="90" width="1020" height="150" as="geometry" />
+    </mxCell>
+    <mxCell id="C_ep" value="endpoints&lt;br/&gt;chat.py · status.py" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="L_int">
+      <mxGeometry x="30" y="50" width="300" height="55" as="geometry" />
+    </mxCell>
+    <mxCell id="C_sch" value="schemas&lt;br/&gt;请求/响应模型" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="L_int">
+      <mxGeometry x="350" y="50" width="190" height="55" as="geometry" />
+    </mxCell>
+    <mxCell id="C_err" value="errors&lt;br/&gt;统一异常处理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="L_int">
+      <mxGeometry x="560" y="50" width="190" height="55" as="geometry" />
+    </mxCell>
+    <mxCell id="C_di" value="service_dependencies&lt;br/&gt;依赖注入(DI)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" vertex="1" parent="L_int">
+      <mxGeometry x="770" y="50" width="220" height="55" as="geometry" />
+    </mxCell>
+
+    <!-- 应用层 -->
+    <mxCell id="L_app" value="application / 应用层（用例编排）" style="swimlane;html=1;startSize=26;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="40" y="260" width="1020" height="110" as="geometry" />
+    </mxCell>
+    <mxCell id="C_as" value="AgentService&lt;br/&gt;驱动 Agent · 发 SSE · 会话记忆" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontStyle=1;" vertex="1" parent="L_app">
+      <mxGeometry x="380" y="28" width="520" height="55" as="geometry" />
+    </mxCell>
+
+    <!-- 领域层 -->
+    <mxCell id="L_dom" value="domain / 领域层（核心业务，不依赖框架与外部实现）" style="swimlane;html=1;startSize=26;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="40" y="390" width="1020" height="330" as="geometry" />
+    </mxCell>
+    <mxCell id="C_agent" value="EquipmentInsightAgent&lt;br/&gt;(BaseAgent · ReAct 循环)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontStyle=1;" vertex="1" parent="L_dom">
+      <mxGeometry x="30" y="40" width="300" height="80" as="geometry" />
+    </mxCell>
+    <mxCell id="C_task" value="agent_task_runner" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;" vertex="1" parent="L_dom">
+      <mxGeometry x="30" y="140" width="300" height="55" as="geometry" />
+    </mxCell>
+    <mxCell id="C_tools" value="工具系统 BaseTool&lt;br/&gt;analyze_trend / predict_failure&lt;br/&gt;query_alarms / … / create_workorder" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontStyle=1;" vertex="1" parent="L_dom">
+      <mxGeometry x="350" y="40" width="300" height="80" as="geometry" />
+    </mxCell>
+    <mxCell id="C_models" value="领域模型 models/" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;" vertex="1" parent="L_dom">
+      <mxGeometry x="350" y="140" width="300" height="55" as="geometry" />
+    </mxCell>
+    <mxCell id="C_llmproto" value="LLM 协议（接口）&lt;br/&gt;external/llm.py" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontStyle=1;" vertex="1" parent="L_dom">
+      <mxGeometry x="670" y="40" width="320" height="80" as="geometry" />
+    </mxCell>
+    <mxCell id="C_repo" value="仓储接口&lt;br/&gt;IMemoryRepository 等" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontStyle=1;" vertex="1" parent="L_dom">
+      <mxGeometry x="670" y="140" width="320" height="55" as="geometry" />
+    </mxCell>
+
+    <!-- 基础设施层 -->
+    <mxCell id="L_inf" value="infrastructure / 基础设施层（实现 domain 定义的接口）" style="swimlane;html=1;startSize=26;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="40" y="740" width="1020" height="150" as="geometry" />
+    </mxCell>
+    <mxCell id="C_openai" value="OpenAI / DeepSeek 实现&lt;br/&gt;openai_llm.py" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontStyle=1;" vertex="1" parent="L_inf">
+      <mxGeometry x="30" y="40" width="300" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="C_data" value="数据源（mock 时序 / 设备信息）&lt;br/&gt;infrastructure/data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;" vertex="1" parent="L_inf">
+      <mxGeometry x="350" y="40" width="300" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="C_repoin" value="InMemory 仓库实现&lt;br/&gt;+ logging" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;" vertex="1" parent="L_inf">
+      <mxGeometry x="670" y="40" width="320" height="60" as="geometry" />
+    </mxCell>
+
+    <!-- 图例 / 说明 -->
+    <mxCell id="legend" value="&lt;b&gt;请求与事件流&lt;/b&gt;：前端 → endpoints → AgentService → EquipmentInsightAgent(ReAct: Thought→工具→观察→…) → 工具/LLM → 基础设施实现；&lt;br/&gt;&lt;b&gt;SSE 事件&lt;/b&gt;：tool(calling) → tool(called, 含结果) → message(结论) → done。&lt;br/&gt;&lt;b&gt;双模式&lt;/b&gt;：Mock（无 API Key，关键词意图识别）↔ 真实 OpenAI/DeepSeek（改 config.yaml）。&lt;br/&gt;&lt;b&gt;依赖倒置&lt;/b&gt;：domain 定义 LLM / 数据源 / 仓储「接口」，infrastructure 提供「实现」，可随时替换。" style="text;html=1;strokeColor=#999999;fillColor=#f5f5f5;rounded=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=6;" vertex="1" parent="1">
+      <mxGeometry x="40" y="910" width="1020" height="100" as="geometry" />
+    </mxCell>
+
+    <!-- 边 -->
+    <mxCell id="e1" value="POST /api/chat/stream" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="fe" target="C_ep">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e2" value="调用" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="C_ep" target="C_as">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e3" value="启动任务" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="C_as" target="C_agent">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e4" value="调用工具" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="C_agent" target="C_tools">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e5" value="推理 / 决策" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="C_agent" target="C_llmproto">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e6" value="读取数据" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=0;" edge="1" parent="1" source="C_tools" target="C_data">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e7" value="实现" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;strokeColor=#b85450;" edge="1" parent="1" source="C_llmproto" target="C_openai">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e8" value="读写记忆" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="C_as" target="C_repo">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e9" value="实现" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;strokeColor=#b85450;" edge="1" parent="1" source="C_repo" target="C_repoin">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e10" value="SSE: tool / message / done" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;strokeColor=#82b366;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="C_as" target="fe">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+  </root>
+</mxGraphModel>

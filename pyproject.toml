@@ -1,0 +1,27 @@
+[project]
+name = "ims-equipment-agent"
+version = "0.1.0"
+description = "iMES 设备洞察 Agent —— 基于 DDD 分层架构的制造业设备运维多智能体基础框架（参考 imooc-mas 课程架构，使用 uv 管理）"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.116.1",
+    "uvicorn[standard]>=0.35.0",
+    "openai>=1.107.2",
+    "pydantic>=2.11.9",
+    "pydantic-settings>=2.10.1",
+    "python-dotenv>=1.1.1",
+    "numpy>=1.26.0",
+    "json-repair>=0.53.0",
+    "pyyaml>=6.0.1",
+    "httpx>=0.28.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+]
+
+# uv 虚拟项目：直接以本目录作为源码根，app/core 作为顶层包（无需构建/安装自身）
+[tool.uv]
+package = false
