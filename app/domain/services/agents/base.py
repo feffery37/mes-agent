@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @File    : base.py
-@Desc    : 基础 Agent（与课程 domain/services/agents/base.py 对应）。
+@Desc    : 基础 Agent。
            实现 ReAct 循环：调用 LLM -> 解析工具调用 -> 执行工具 -> 回填结果 -> 再次调用 LLM，
            以事件流(AsyncGenerator[BaseEvent])形式输出，支持记忆持久化与重试。
 """

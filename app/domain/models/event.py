@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @File    : event.py
-@Desc    : 事件模型（与课程 domain/models/event.py 对应）。
+@Desc    : 事件模型。
            Agent 执行过程以「事件流」形式向接口层/前端推送，实现流式响应。
            这里保留基础框架所需的核心事件类型。
 """

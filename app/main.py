@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @File    : main.py
-@Desc    : 应用入口（与课程 app/main.py 对应）。
+@Desc    : 应用入口。
            完成：加载配置 -> 初始化日志 -> CORS -> 注册异常处理器 -> 挂载路由 -> 生命周期启停。
 """
 import logging
@@ -41,7 +41,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="iMES 设备洞察 Agent",
     description="面向制造业设备运维的对话式分析助手：查现状 / 看趋势 / 找原因 / 问对策。"
-                "基于 DDD 分层 + ReAct + 可动态配置 LLM 的基础框架（参考 imooc-mas 课程架构）。",
+                "基于 DDD 分层 + ReAct + 可动态配置 LLM 的基础框架。",
     lifespan=lifespan,
     openapi_tags=openapi_tags,
     version="0.1.0",

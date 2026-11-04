@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @File    : react.py
-@Desc    : 设备洞察 Agent（基于 ReAct 架构，对应课程 domain/services/agents/react.py）。
+@Desc    : 设备洞察 Agent（基于 ReAct 架构）。
            系统提示词引导大模型完成「查现状 -> 看趋势 -> 找原因 -> 问对策」的闭环。
 """
 import logging

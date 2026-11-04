@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @File    : llm.py
-@Desc    : LLM 交互协议（与课程 domain/external/llm.py 对应）。
+@Desc    : LLM 交互协议。
            定义 Agent 应用与 LLM 之间的统一接口，便于在不改动上层逻辑的情况下
            替换不同的模型实现（DeepSeek / OpenAI / 本地 Mock 等）。
 """

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @File    : __init__.py
-@Desc    : 日志模块（与课程《第5章 统一响应&日志跨域》对应）。
+@Desc    : 日志模块。
            提供统一的 setup_logging，供 main 生命周期与运行期使用。
 """
 import logging

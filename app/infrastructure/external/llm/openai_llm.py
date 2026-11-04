@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @File    : openai_llm.py
-@Desc    : 基于 OpenAI SDK / 兼容协议的 LLM 实现（与课程 infrastructure/external/llm/openai_llm.py 对应）。
-           默认对接 DeepSeek，符合课程《第3章 DeepSeek与OpenAI SDK》《第7章 可动态配置LLM》。
+@Desc    : 基于 OpenAI SDK / 兼容协议的 LLM 实现。。
 """
 import logging
 from typing import List, Dict, Any, Optional

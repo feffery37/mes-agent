@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @File    : memory.py
-@Desc    : Agent 记忆模型（与课程 domain/models/memory.py 对应）。
+@Desc    : Agent 记忆模型。
            以消息字典列表的形式保存会话上下文，支持持久化与压缩。
 """
 from typing import Dict, List, Optional

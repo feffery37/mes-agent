@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @File    : agent_service.py
-@Desc    : Agent 后台任务运行器 + 会话管理器（对应课程 application + domain/services/agent_task_runner）。
+@Desc    : Agent 后台任务运行器 + 会话管理器。
            1) AgentTaskRunner：在后台 asyncio 任务中运行 Agent 的 ReAct 流，并以事件流输出；
            2) AgentService：管理多会话、输入输出队列、生命周期启停（后台运行架构）。
 """
@@ -197,7 +197,7 @@ _service: Optional[AgentService] = None
 
 
 def get_agent_service() -> AgentService:
-    """获取全局 AgentService 单例（对应课程 interfaces/service_dependencies.get_agent_service）。"""
+    """获取全局 AgentService 单例。"""
     global _service
     if _service is None:
         _service = AgentService()

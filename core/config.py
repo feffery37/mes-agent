@@ -5,7 +5,6 @@
 @Desc    : iMES 设备洞察 Agent 的中控配置。
            1) Settings —— 运行期配置，从 .env / 环境变量加载(pydantic-settings)；
            2) LLMConfig / AgentConfig / MCPConfig —— 业务配置，从 config.yaml 加载；
-           对应课程《第5章 项目初始化》《第7章 LLM模块开发：可动态配置》。
 """
 from functools import lru_cache
 from typing import List, Optional
@@ -53,7 +52,7 @@ def get_settings() -> Settings:
 # 二、业务配置（config.yaml）—— 可动态下发 / 热更新
 # ---------------------------------------------------------------------------
 class LLMConfig(BaseModel):
-    """LLM 动态配置模型（与课程 app_config.LLMConfig 对应）。"""
+    """LLM 动态配置模型。"""
 
     provider: str = "openai"
     base_url: str = "https://api.deepseek.com"
@@ -64,7 +63,7 @@ class LLMConfig(BaseModel):
 
 
 class AgentConfig(BaseModel):
-    """Agent 动态配置模型（与课程 app_config.AgentConfig 对应）。"""
+    """Agent 动态配置模型"""
 
     name: str = "equipment_insight"
     max_iterations: int = Field(default=12, ge=1)
@@ -73,7 +72,7 @@ class AgentConfig(BaseModel):
 
 
 class MCPConfig(BaseModel):
-    """MCP 协议配置（预留扩展位，参考课程第6章）。"""
+    """MCP 协议配置。"""
 
     servers: List[str] = Field(default_factory=list)
 

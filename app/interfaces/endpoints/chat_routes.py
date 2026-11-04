@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @File    : chat_routes.py
-@Desc    : 对话接口（与课程 interfaces/endpoints/session_routes.py 对应）。
+@Desc    : 对话接口。
            提供：提交消息、SSE 流式拉取、以及便捷的「提交即流式」端点。
 """
 import json

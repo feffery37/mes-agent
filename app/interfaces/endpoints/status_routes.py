@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @File    : status_routes.py
-@Desc    : 状态监测接口（与课程 interfaces/endpoints/status_routes.py 对应）。
+@Desc    : 状态监测接口。
 """
 import time
 

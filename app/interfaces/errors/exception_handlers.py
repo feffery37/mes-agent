@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @File    : exception_handlers.py
-@Desc    : 统一异常处理器（与课程 interfaces/errors/exception_handlers.py 对应）。
+@Desc    : 统一异常处理器。
            把领域/应用异常转换为标准化 JSON 响应，解决跨域统一响应问题。
 """
 import logging

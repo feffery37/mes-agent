@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @File    : chat.py
-@Desc    : 对话接口的请求/响应 Schema（与课程 interfaces/schemas 对应）。
+@Desc    : 对话接口的请求/响应 Schema。
 """
 from typing import Optional
 

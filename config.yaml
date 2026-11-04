@@ -1,5 +1,5 @@
 # iMES 设备洞察 Agent 应用配置
-# 该文件对应课程《第5章 项目初始化：项目目录结构&开发范式约定》中的 app_config
+#  app_config
 # 运行时由 core/config.py 读取，可被环境变量(.env)覆盖
 
 # 智能体(Agent)运行配置
@@ -18,7 +18,7 @@ llm:
   temperature: 0.0
   max_tokens: 2048
 
-# MCP 协议配置（参考课程《第6章 MCP协议初识》，基础框架预留扩展位）
+# MCP 协议配置（基础框架预留扩展位）
 mcp:
   servers: []
 

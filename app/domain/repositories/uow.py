@@ -3,7 +3,7 @@
 """
 @File    : uow.py
 @Desc    : 工作单元(Unit of Work)协议 + 内存实现。
-           参考课程 DDD 分层：通过 uow_factory 注入，BaseAgent 在事务上下文中读写记忆。
+          DDD 分层：通过 uow_factory 注入，BaseAgent 在事务上下文中读写记忆。
 """
 from typing import Callable, Protocol
 

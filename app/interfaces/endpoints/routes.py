@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @File    : routes.py
-@Desc    : 路由聚合（与课程 interfaces/endpoints/routes.py 对应）。
+@Desc    : 路由聚合。
 """
 from fastapi import APIRouter
 

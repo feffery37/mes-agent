@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @File    : exceptions.py
-@Desc    : 应用层统一异常（与课程 application/errors/exceptions.py 对应）。
+@Desc    : 应用层统一异常。
            用于接口层统一捕获并返回标准化错误响应。
 """
 from fastapi import HTTPException, status

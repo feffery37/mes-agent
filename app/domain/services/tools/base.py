@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @File    : base.py
-@Desc    : 工具基类与工具装饰器（与课程 domain/services/tools/base.py 对应）。
+@Desc    : 工具基类与工具装饰器。
            设计思路：
            1) 所有工具继承 BaseTool，拥有统一的 invoke 方法；
            2) @tool 装饰器把函数声明为工具，并附上 name/description/schema；

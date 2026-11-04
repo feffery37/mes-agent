@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @File    : message.py
-@Desc    : 消息领域模型（与课程 domain/models/message.py 对应）。
+@Desc    : 消息领域模型。
 """
 from typing import List, Optional
 

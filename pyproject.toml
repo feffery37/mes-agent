@@ -1,7 +1,7 @@
 [project]
 name = "ims-equipment-agent"
 version = "0.1.0"
-description = "iMES 设备洞察 Agent —— 基于 DDD 分层架构的制造业设备运维多智能体基础框架（参考 imooc-mas 课程架构，使用 uv 管理）"
+description = "iMES 设备洞察 Agent —— 基于 DDD 分层架构的制造业设备运维多智能体基础框架"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -22,6 +22,6 @@ dev = [
     "pytest>=8.4.2",
 ]
 
-# uv 虚拟项目：直接以本目录作为源码根，app/core 作为顶层包（无需构建/安装自身）
+# uv 虚拟项目
 [tool.uv]
 package = false

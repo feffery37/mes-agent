@@ -3,7 +3,7 @@
 """
 @File    : default.py
 @Desc    : 默认 JSON 解析器（实现 JSONParser 协议）。
-           使用 json-repair 容忍 LLM 输出的噪声 JSON（与课程 json_parser 思路一致）。
+           使用 json-repair 容忍 LLM 输出的噪声 JSON。
 """
 import json
 import logging
