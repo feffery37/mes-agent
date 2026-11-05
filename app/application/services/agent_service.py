@@ -37,6 +37,7 @@ from app.infrastructure.external.llm.mock import MockLLM
 from app.infrastructure.external.llm.openai_llm import OpenAILLM
 from app.infrastructure.repositories.memory import InMemoryMemoryRepository
 from core.config import AgentConfig, AppConfig, LLMConfig, get_app_config
+from app.domain.services.tools.notification import NotificationTool
 
 logger = logging.getLogger(__name__)
 
@@ -108,6 +109,7 @@ class AgentService:
             KnowledgeTool(),
             WorkOrderTool(),
             ChartTool(),
+            NotificationTool(),
         ]
         self._llm: Optional[LLM] = None
         self._sessions: Dict[str, _SessionState] = {}

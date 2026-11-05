@@ -99,6 +99,33 @@ export interface WorkOrderConfirmResponse {
   }
 }
 
+/** 待人工确认的对外通知草稿（由 draft_notification 返回） */
+export interface NotificationDraft {
+  title: string
+  body: string
+  level: string
+  channels: string[]
+}
+
+export interface PendingNotification {
+  status: "pending_confirmation"
+  kind: "notification"
+  confirm_token: string
+  draft: NotificationDraft
+  expires_in_seconds?: number
+}
+
+/** POST /api/notify/confirm 返回 */
+export interface NotificationConfirmResponse {
+  success: boolean
+  message?: string
+  data?: {
+    status: string
+    channels?: string[]
+    confirm_token?: string
+  }
+}
+
 /** GET /api/status 返回 */
 export interface StatusResponse {
   service: string

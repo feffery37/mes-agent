@@ -9,8 +9,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { ToolUseList } from "@/components/tool-use"
 import { WorkOrderConfirmCard } from "@/components/tool-use/workorder-confirm-card"
+import { NotificationConfirmCard } from "@/components/tool-use/notification-confirm-card"
 import { useChat } from "@/hooks/use-chat"
-import type { PendingConfirmation } from "@/lib/api/types"
+import type { PendingConfirmation, PendingNotification } from "@/lib/api/types"
 
 const EXAMPLES = [
   "1号机最近温度是不是在上升？会不会出问题？",
@@ -115,6 +116,7 @@ export default function Page() {
                     .filter(
                       (t) =>
                         t.status === "called" &&
+                        t.function_name === "create_workorder" &&
                         (t.function_result?.data as PendingConfirmation | undefined)?.status ===
                           "pending_confirmation"
                     )
@@ -123,6 +125,26 @@ export default function Page() {
                       return (
                         <WorkOrderConfirmCard
                           key={`confirm-${t.tool_call_id}`}
+                          token={data.confirm_token}
+                          draft={data.draft}
+                          expiresIn={data.expires_in_seconds}
+                        />
+                      )
+                    })}
+
+                  {turn.tools
+                    .filter(
+                      (t) =>
+                        t.status === "called" &&
+                        t.function_name === "draft_notification" &&
+                        (t.function_result?.data as PendingNotification | undefined)?.status ===
+                          "pending_confirmation"
+                    )
+                    .map((t) => {
+                      const data = t.function_result?.data as PendingNotification
+                      return (
+                        <NotificationConfirmCard
+                          key={`notify-${t.tool_call_id}`}
                           token={data.confirm_token}
                           draft={data.draft}
                           expiresIn={data.expires_in_seconds}

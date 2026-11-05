@@ -77,12 +77,30 @@ class MCPConfig(BaseModel):
     servers: List[str] = Field(default_factory=list)
 
 
+class NotifyChannelConfig(BaseModel):
+    """单个通知渠道。webhook_env 只写环境变量名，密钥不落配置文件。"""
+
+    enabled: bool = True
+    webhook_env: str = ""
+
+
+class NotifyConfig(BaseModel):
+    """对外通知配置。enabled=false 时一键静默；发送时机由用户确认，不在此配置规则。"""
+
+    enabled: bool = True
+    default_channels: List[str] = Field(default_factory=list)
+    channels: dict[str, NotifyChannelConfig] = Field(default_factory=dict)
+    retry: int = 2
+    timeout_seconds: float = 5.0
+
+
 class AppConfig(BaseModel):
     """聚合的业务配置。"""
 
     agent: AgentConfig = Field(default_factory=AgentConfig)
     llm: LLMConfig = Field(default_factory=LLMConfig)
     mcp: MCPConfig = Field(default_factory=MCPConfig)
+    notify: NotifyConfig = Field(default_factory=NotifyConfig)
     data_source: dict = Field(default_factory=dict)
 
 

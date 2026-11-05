@@ -29,4 +29,9 @@ def setup_logging(level: str = "INFO") -> None:
     root.addHandler(handler)
     root.setLevel(getattr(logging, level.upper(), logging.INFO))
 
+    # 第三方 HTTP 客户端会以 INFO 打印完整请求 URL；通知 webhook 的 URL 含 key，
+    # 统一降噪到 WARNING，避免密钥写进日志（LLM 网关日志用的 httpx2 不受影响）。
+    for name in ("httpx", "httpcore"):
+        logging.getLogger(name).setLevel(logging.WARNING)
+
     _CONFIGURED = True

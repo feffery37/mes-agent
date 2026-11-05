@@ -25,3 +25,14 @@ mcp:
 # 数据源配置（基础框架使用内置样本数据，后续可替换为真实时序库/数仓）
 data_source:
   use_sample_data: true
+
+# 消息推送（人在回路：模型只生成草稿，用户点击发送后才外发）
+notify:
+  enabled: true               # 总开关，false 一键静默
+  default_channels: ["wecom"]
+  channels:
+    wecom:
+      enabled: true
+      webhook_env: WECOM_WEBHOOK_URL   # 只写变量名，值放 .env
+  retry: 2
+  timeout_seconds: 5

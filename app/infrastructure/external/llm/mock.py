@@ -20,6 +20,11 @@ logger = logging.getLogger(__name__)
 
 # 意图关键词 -> (工具名, 默认参数构造器)
 _INTENT_RULES = [
+    # 通知意图优先：只生成待确认草稿，是否发送仍由用户点击决定
+    ("通知", "draft_notification", lambda q: {"title": "设备运维通知", "body": f"用户请求：「{q}」", "level": "warning"}),
+    ("推送", "draft_notification", lambda q: {"title": "设备运维通知", "body": f"用户请求：「{q}」", "level": "warning"}),
+    ("发到群", "draft_notification", lambda q: {"title": "设备运维通知", "body": f"用户请求：「{q}」", "level": "warning"}),
+    ("告诉班组", "draft_notification", lambda q: {"title": "设备运维通知", "body": f"用户请求：「{q}」", "level": "warning"}),
     # 可视化意图优先：命中即出图
     ("可视化", "plot_param_trend", lambda q: {"eid": 1, "param": "TEMP_NOZZLE", "window": "7d"}),
     ("图表", "plot_param_trend", lambda q: {"eid": 1, "param": "TEMP_NOZZLE", "window": "7d"}),

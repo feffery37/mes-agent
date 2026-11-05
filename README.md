@@ -277,3 +277,27 @@ else            -> 趋势不显著（样本不足以断定方向）
 | 参数进 `config.yaml`、脏数据样本与单测 | 预留 | 当前参数写在函数签名中 |
 
 > **调用链**：`TrendTool.analyze_trend`（按 eid / param / window 取数并切窗）→ `analyze_trend()`；`PredictionTool` 取 `sen_slope` 作退化特征，`ChartTool` 用 `theil_sen_slope()` 画稳健趋势线。三者共享同一无状态算法模块，可独立单测、可复用。
+
+---
+
+## 八、消息推送（P0，默认只打日志）
+
+对外通知采用**人在回路的手动入口**：模型只能生成待确认草稿，**发不发完全由人点击决定**；
+没有事件旁路、阈值规则或静默窗口，LLM 也没有任何路径直接发送。
+
+**链路**：用户说「通知 / 推送 / 发到群 / 告诉班组」→ Agent 调用 `draft_notification` 生成草稿
+（返回 `confirm_token`，**不发送**）→ 前端渲染确认卡片（标题 / 正文 / 级别 / 渠道）
+→ 用户点「发送通知」→ `POST /api/notify/confirm` 校验一次性令牌后才真正投递；点「忽略」则作废。
+
+| 项 | 说明 |
+| --- | --- |
+| 工具 | `draft_notification` 注册为 `@tool`，只能生成草稿；发送接口 `POST /api/notify/confirm` **不是** `@tool`，LLM 无法调用 |
+| 纪律 | System 十条硬纪律第 2 条：对外通知须人工确认，模型不得声称已发送、不得代替用户确认 |
+| 渠道 | `wecom`（企业微信群机器人 markdown）、`mock`（只写日志）；配置 `webhook_env` 才启用真实渠道 |
+| 启用 | 复制 `.env.example` 为 `.env` 并填 `WECOM_WEBHOOK_URL`；未填时自动降级为日志模式，不会对外发送 |
+| 开关 | `notify.enabled: false` 一键关闭；确认令牌一次性、10 分钟有效 |
+| 可靠性 | 人工确认后同步投递并返回结果，失败重试 2 次后只记日志；webhook key 不写日志、不进异常文本 |
+| 预留 | 飞书适配器、按设备 / 班组的订阅关系、交互卡片回跳发送 |
+
+分层与 LLM 模块对称：`domain/external/notifier.py` 定义协议 → `infrastructure/external/notify/` 放渠道实现
+→ `application/services/notification_service.py` 管理草稿与投递。配置见 `config.yaml` 的 `notify` 段与 `.env.example`。
