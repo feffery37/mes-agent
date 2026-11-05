@@ -26,6 +26,7 @@ from app.domain.models.message import Message
 from app.domain.repositories.uow import IUnitOfWork, InMemoryUnitOfWork
 from app.domain.services.agents.react import EquipmentInsightAgent
 from app.domain.services.tools.base import BaseTool
+from app.domain.services.tools.chart import ChartTool
 from app.domain.services.tools.equipment import EquipmentTool
 from app.domain.services.tools.knowledge import KnowledgeTool
 from app.domain.services.tools.prediction import PredictionTool
@@ -106,6 +107,7 @@ class AgentService:
             PredictionTool(),
             KnowledgeTool(),
             WorkOrderTool(),
+            ChartTool(),
         ]
         self._llm: Optional[LLM] = None
         self._sessions: Dict[str, _SessionState] = {}

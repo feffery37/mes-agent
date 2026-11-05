@@ -9,6 +9,31 @@ export interface ToolResult {
   data?: unknown
 }
 
+/** 图表规格：后端 plot_* 工具产出，前端用 Recharts 渲染 */
+export interface ChartSeries {
+  /** 对应 data 中的字段名 */
+  key: string
+  name: string
+  style?: "solid" | "dashed"
+}
+
+export interface ChartRefLine {
+  y: number
+  label: string
+}
+
+export interface ChartSpec {
+  kind: "line" | "bar"
+  title: string
+  x_label?: string
+  y_label?: string
+  unit?: string
+  data: Array<Record<string, string | number>>
+  series: ChartSeries[]
+  ref_lines?: ChartRefLine[]
+  meta?: Record<string, unknown>
+}
+
 /** 工具调用事件：status 为 calling（调用中）/ called（已返回） */
 export interface ToolCallEvent {
   id: string

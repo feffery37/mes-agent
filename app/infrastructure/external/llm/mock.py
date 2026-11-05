@@ -20,6 +20,12 @@ logger = logging.getLogger(__name__)
 
 # 意图关键词 -> (工具名, 默认参数构造器)
 _INTENT_RULES = [
+    # 可视化意图优先：命中即出图
+    ("可视化", "plot_param_trend", lambda q: {"eid": 1, "param": "TEMP_NOZZLE", "window": "7d"}),
+    ("图表", "plot_param_trend", lambda q: {"eid": 1, "param": "TEMP_NOZZLE", "window": "7d"}),
+    ("画图", "plot_param_trend", lambda q: {"eid": 1, "param": "TEMP_NOZZLE", "window": "7d"}),
+    ("画个", "plot_param_trend", lambda q: {"eid": 1, "param": "TEMP_NOZZLE", "window": "7d"}),
+    ("曲线", "plot_param_trend", lambda q: {"eid": 1, "param": "TEMP_NOZZLE", "window": "7d"}),
     ("报警", "query_alarm_log", lambda q: {"eid": 1, "days": 1}),
     ("趋势", "analyze_trend", lambda q: {"eid": 1, "param": "TEMP_NOZZLE", "window": "7d"}),
     ("上升", "analyze_trend", lambda q: {"eid": 1, "param": "TEMP_NOZZLE", "window": "7d"}),

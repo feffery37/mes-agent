@@ -4,8 +4,9 @@ import { useState } from "react"
 import { Wrench, Loader2, ChevronDown, CheckCircle2, XCircle } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { ChartCard } from "@/components/chart/chart-card"
 import { cn } from "@/lib/utils"
-import type { ToolCallEvent } from "@/lib/api/types"
+import type { ChartSpec, ToolCallEvent } from "@/lib/api/types"
 
 function pretty(value: unknown): string {
   try {
@@ -19,6 +20,10 @@ export function ToolCard({ tool }: { tool: ToolCallEvent }) {
   const [open, setOpen] = useState(false)
   const calling = tool.status === "calling"
   const ok = tool.function_result?.success !== false
+  // 图表工具的返回里带 chart spec，直接渲染成图，JSON 区里用占位符代替
+  const resultData = tool.function_result?.data as { chart?: ChartSpec } | undefined
+  const chart = resultData?.chart
+  const jsonData = chart ? { ...resultData, chart: "[已在下方渲染为图表]" } : (tool.function_result?.data ?? {})
 
   return (
     <Card className="overflow-hidden border-border bg-background shadow-none">
@@ -55,6 +60,12 @@ export function ToolCard({ tool }: { tool: ToolCallEvent }) {
         />
       </button>
 
+      {chart && (
+        <div className="border-t border-border px-3 py-3">
+          <ChartCard spec={chart} />
+        </div>
+      )}
+
       {open && (
         <div className="space-y-2 border-t border-border px-3 py-2">
           <div>
@@ -69,7 +80,7 @@ export function ToolCard({ tool }: { tool: ToolCallEvent }) {
                 返回{tool.function_result.message ? ` · ${tool.function_result.message}` : ""}
               </div>
               <pre className="max-h-64 overflow-auto rounded-lg bg-secondary p-2 font-mono text-xs text-foreground/80">
-                {pretty(tool.function_result.data ?? {})}
+                {pretty(jsonData)}
               </pre>
             </div>
           )}
