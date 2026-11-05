@@ -1,0 +1,99 @@
+<mxfile host="app.diagrams.net" agent="codebuddy" version="24.7.7">
+  <diagram id="tool-arch" name="工具机制与实现">
+    <mxGraphModel dx="1200" dy="850" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ===== LLM 层 ===== -->
+        <mxCell id="llm" value="&lt;b&gt;LLM（ReAct 推理循环，≤ 12 轮）&lt;/b&gt;&lt;br&gt;LLM 决策 → 解析 tool_calls → 执行工具 → 结果回填 → 再推理&lt;br&gt;（parallel_tool_calls = False，强制“想一步、做一步”）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111113;fontColor=#111113;fontSize=12;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="200" y="40" width="520" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- ===== 工具机制层 ===== -->
+        <mxCell id="mech" value="工具机制层 —— BaseTool（app/domain/services/tools/base.py）" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#fafafa;strokeColor=#111113;fontColor=#111113;fontSize=13;fontStyle=1;container=1;collapsible=0;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="80" y="175" width="800" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="t1" value="&lt;b&gt;@tool 装饰器&lt;/b&gt;&lt;br&gt;把 name / description /&lt;br&gt;JSON Schema 参数定义&lt;br&gt;挂到函数属性上注册" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111113;fontColor=#111113;fontSize=11;" vertex="1" parent="mech">
+          <mxGeometry x="20" y="40" width="230" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="t2" value="&lt;b&gt;get_tools()&lt;/b&gt;&lt;br&gt;inspect 扫描收集全部 schema&lt;br&gt;（带缓存）→ 作为 tools 参数&lt;br&gt;传给 LLM（function calling）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111113;fontColor=#111113;fontSize=11;" vertex="1" parent="mech">
+          <mxGeometry x="285" y="40" width="250" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="t3" value="&lt;b&gt;invoke()&lt;/b&gt;&lt;br&gt;按工具名分发执行&lt;br&gt;_filter_parameters 用签名校验&lt;br&gt;丢弃 LLM 幻觉的多余参数" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111113;fontColor=#111113;fontSize=11;" vertex="1" parent="mech">
+          <mxGeometry x="560" y="40" width="220" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="mt12" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;strokeColor=#999999;dashed=1;endArrow=block;" edge="1" parent="mech" source="t1" target="t2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="mt23" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;strokeColor=#999999;dashed=1;endArrow=block;" edge="1" parent="mech" source="t2" target="t3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ===== 工具集 ===== -->
+        <mxCell id="tools" value="六个工具集（app/domain/services/tools/）—— 统一返回 ToolResult" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#fafafa;strokeColor=#111113;fontColor=#111113;fontSize=13;fontStyle=1;container=1;collapsible=0;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="400" width="840" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="eq" value="&lt;b&gt;equipment&lt;/b&gt;&lt;br&gt;查现状&lt;br&gt;设备主数据 + 最新参数值 / 报警" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111113;fontColor=#111113;fontSize=11;" vertex="1" parent="tools">
+          <mxGeometry x="15" y="40" width="130" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="tr" value="&lt;b&gt;trend&lt;/b&gt;&lt;br&gt;稳健趋势分析&lt;br&gt;Theil-Sen 斜率（中位数）&lt;br&gt;+ Bootstrap 置信区间" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111113;fontColor=#111113;fontSize=11;" vertex="1" parent="tools">
+          <mxGeometry x="153" y="40" width="130" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="pr" value="&lt;b&gt;prediction&lt;/b&gt;&lt;br&gt;故障预测&lt;br&gt;退化特征 + sigmoid 概率&lt;br&gt;SHAP 风格可解释输出" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111113;fontColor=#111113;fontSize=11;" vertex="1" parent="tools">
+          <mxGeometry x="291" y="40" width="130" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="kb" value="&lt;b&gt;knowledge&lt;/b&gt;&lt;br&gt;SOP / 案例检索&lt;br&gt;关键词 + 机型过滤&lt;br&gt;可演进为向量 RAG" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111113;fontColor=#111113;fontSize=11;" vertex="1" parent="tools">
+          <mxGeometry x="429" y="40" width="130" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="wo" value="&lt;b&gt;workorder&lt;/b&gt;&lt;br&gt;创建 / 查询工单&lt;br&gt;内存 dict 自增单号&lt;br&gt;可对接 MES" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111113;fontColor=#111113;fontSize=11;" vertex="1" parent="tools">
+          <mxGeometry x="567" y="40" width="130" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="ch" value="&lt;b&gt;chart&lt;/b&gt;&lt;br&gt;趋势图 / 风险图&lt;br&gt;产出 chart spec JSON&lt;br&gt;前端 Recharts 渲染" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111113;fontColor=#111113;fontSize=11;" vertex="1" parent="tools">
+          <mxGeometry x="705" y="40" width="130" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- ===== 数据层 ===== -->
+        <mxCell id="data" value="数据层 —— app/infrastructure/data/sample.py（换真实库只改这一层）" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#fafafa;strokeColor=#111113;fontColor=#111113;fontSize=13;fontStyle=1;container=1;collapsible=0;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="80" y="630" width="800" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="dat1" value="EQ_EQUIPMENT 设备主数据 ｜ EQ_ALARM_LOG 报警日志 ｜ EQ_PARAM_TS 参数时序 ｜ KB_DOCUMENT 知识库 ｜ PR_WORKORDER 维修工单" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111113;fontColor=#111113;fontSize=11;" vertex="1" parent="data">
+          <mxGeometry x="20" y="35" width="760" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ===== 右侧：ToolResult 回填 ===== -->
+        <mxCell id="result" value="&lt;b&gt;ToolResult&lt;/b&gt;&lt;br&gt;success / message / data&lt;br&gt;统一结果结构" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111113;fontColor=#111113;fontSize=12;dashed=0;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="960" y="200" width="220" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="fe" value="&lt;b&gt;前端渲染&lt;/b&gt;&lt;br&gt;ToolEvent → 工具卡片&lt;br&gt;MessageEvent → Markdown&lt;br&gt;chart spec → Recharts 图表" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#111113;fontColor=#111113;fontSize=12;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="960" y="630" width="220" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- ===== 演进说明 ===== -->
+        <mxCell id="note" value="演进路径：knowledge → 向量检索 RAG；prediction → LightGBM + SHAP；workorder → 对接 MES；数据层 → 真实数据库。工具签名与返回结构保持不变。" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontColor=#555555;fontSize=11;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="745" width="800" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ===== 主链路连线 ===== -->
+        <mxCell id="e1" value="① tools 参数（function calling schema）" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;strokeColor=#111113;fontColor=#333333;fontSize=11;labelBackgroundColor=#ffffff;strokeWidth=2;" edge="1" parent="1" source="llm" target="mech">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="② invoke() 按名称分发" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;strokeColor=#111113;fontColor=#333333;fontSize=11;labelBackgroundColor=#ffffff;strokeWidth=2;" edge="1" parent="1" source="mech" target="tools">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="③ 读写数据" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;strokeColor=#111113;fontColor=#333333;fontSize=11;labelBackgroundColor=#ffffff;strokeWidth=2;" edge="1" parent="1" source="tools" target="data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="统一返回" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;strokeColor=#666666;fontColor=#333333;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="mech" target="result">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value='④ json.dumps → role="tool" 消息回填上下文，进入下一轮推理' style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;strokeColor=#111113;fontColor=#333333;fontSize=11;labelBackgroundColor=#ffffff;strokeWidth=2;exitX=0.25;exitY=0;entryX=1;entryY=0.5;" edge="1" parent="1" source="result" target="llm">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="事件流（SSE）：%0aToolEvent(calling/called) / MessageEvent / DoneEvent" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;strokeColor=#666666;fontColor=#333333;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="result" target="fe">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

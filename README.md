@@ -62,6 +62,14 @@ ims_equipment_agent/                 # 即课件中的 api/ 根
 | `workorder` | `create_workorder` / `query_workorder` | 创建设备维修工单（落地可执行动作） |
 | `chart` | `plot_param_trend` / `plot_alarm_distribution` / `plot_failure_risk` | 产出图表规格（趋势折线图带 Theil-Sen 趋势线与控制限、报警分布柱状图、故障风险柱状图），前端用 Recharts 渲染为可交互图表 |
 
+### 工具机制与实现思路
+
+下图自顶向下展示「LLM ReAct 循环 → `BaseTool` 统一机制 → 六个工具集 → 数据层」的注册、发现、调用与结果回填过程（`ToolResult` → `role="tool"` 消息 → 下一轮推理），右侧为事件流与前端渲染。
+
+![工具机制与实现架构](docs/images/tool-architecture.png)
+
+> 可编辑源文件：[`docs/tool-architecture.drawio`](docs/tool-architecture.drawio)（draw.io / VS Code Draw.io Integration 打开）。
+
 接入真实 LLM（DeepSeek、openAI）后，`EquipmentInsightAgent` 会按意图自主选择并串联这些工具，输出自然语言结论。
 
 ---
