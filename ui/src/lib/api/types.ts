@@ -74,6 +74,31 @@ export interface DoneEvent {
 
 export type SSEEvent = ToolCallEvent | AssistantMessageEvent | ErrorEvent | DoneEvent
 
+/** 待人工确认的维修工单申请（由 create_workorder 返回） */
+export interface WorkOrderDraft {
+  eid: number
+  title: string
+  priority: string
+}
+
+export interface PendingConfirmation {
+  status: "pending_confirmation"
+  confirm_token: string
+  draft: WorkOrderDraft
+  expires_in_seconds?: number
+}
+
+/** POST /api/workorder/confirm 返回 */
+export interface WorkOrderConfirmResponse {
+  success: boolean
+  message?: string
+  data?: {
+    status: string
+    confirm_token?: string
+    workorder?: Record<string, unknown>
+  }
+}
+
 /** GET /api/status 返回 */
 export interface StatusResponse {
   service: string

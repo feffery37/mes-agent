@@ -6,8 +6,9 @@
 """
 from fastapi import APIRouter
 
-from app.interfaces.endpoints import chat_routes, status_routes
+from app.interfaces.endpoints import chat_routes, status_routes, workorder_routes
 
 router = APIRouter()
 router.include_router(status_routes.router)
 router.include_router(chat_routes.router)
+router.include_router(workorder_routes.router)

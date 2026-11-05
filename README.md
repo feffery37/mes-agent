@@ -61,8 +61,18 @@ ims_equipment_agent/                 # 即课件中的 api/ 根
 | `trend` | `analyze_trend` | Theil-Sen 斜率 + Bootstrap 95% 置信区间（方案第5章核心算法） |
 | `prediction` | `predict_failure` / `explain` | 故障概率预测 + SHAP 风格可解释性 |
 | `knowledge` | `search_knowledge` | SOP / 历史案例检索（关键词 + 机型过滤） |
-| `workorder` | `create_workorder` / `query_workorder` | 创建设备维修工单（落地可执行动作） |
+| `workorder` | `create_workorder` / `query_workorder` | 生成「待人工确认」的维修工单申请 / 查询已确认创建的工单（人在回路，见下） |
 | `chart` | `plot_param_trend` / `plot_alarm_distribution` / `plot_failure_risk` | 产出图表规格（趋势折线图带 Theil-Sen 趋势线与控制限、报警分布柱状图、故障风险柱状图），前端用 Recharts 渲染为可交互图表 |
+
+### 建单确认（人在回路）
+
+写操作不允许由模型直接执行。`create_workorder` 只生成待确认申请（返回 `confirm_token` 与拟建单内容，**不创建工单**），
+前端据此渲染确认卡片；用户点击「确认建单」后才由 `POST /api/workorder/confirm` 执行真正的创建。
+令牌一次性、10 分钟有效，也可选择「取消」；确认入口不是 `@tool`，不出现在 LLM 的工具列表里，模型无路径绕过。
+创建的工单带 `confirmed_by=user` 便于审计。
+
+对应实现：`app/domain/services/tools/workorder.py`、`app/interfaces/endpoints/workorder_routes.py`、
+`ui/src/components/tool-use/workorder-confirm-card.tsx`。
 
 ### 工具机制与实现思路
 

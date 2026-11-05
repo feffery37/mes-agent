@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { ToolUseList } from "@/components/tool-use"
+import { WorkOrderConfirmCard } from "@/components/tool-use/workorder-confirm-card"
 import { useChat } from "@/hooks/use-chat"
+import type { PendingConfirmation } from "@/lib/api/types"
 
 const EXAMPLES = [
   "1号机最近温度是不是在上升？会不会出问题？",
@@ -108,6 +110,25 @@ export default function Page() {
                       </div>
                     </details>
                   )}
+
+                  {turn.tools
+                    .filter(
+                      (t) =>
+                        t.status === "called" &&
+                        (t.function_result?.data as PendingConfirmation | undefined)?.status ===
+                          "pending_confirmation"
+                    )
+                    .map((t) => {
+                      const data = t.function_result?.data as PendingConfirmation
+                      return (
+                        <WorkOrderConfirmCard
+                          key={`confirm-${t.tool_call_id}`}
+                          token={data.confirm_token}
+                          draft={data.draft}
+                          expiresIn={data.expires_in_seconds}
+                        />
+                      )
+                    })}
 
                   {turn.error ? (
                     <div className="rounded-xl border border-destructive/25 bg-destructive/5 px-4 py-3 text-sm leading-relaxed text-destructive">
