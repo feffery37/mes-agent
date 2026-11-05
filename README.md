@@ -8,11 +8,13 @@
 
 ## 一、架构
 
-| 项目初始化 / 通用模块（数据源、统一响应、日志跨域） | `core/config.py` 动态配置、`interfaces/errors` 统一异常、`infrastructure/logging` 日志 |
-| MCP 协议 | `core/config.py` 的 `MCPConfig`（预留扩展位）、`domain/services/tools` 工具协议 |
-| LLM 模块（可动态配置 + 后台运行） `domain/external/llm.py` 协议 + `infrastructure/external/llm`（OpenAI/DeepSeek 与 Mock 两种实现）、`application/services/agent_service.py` 后台任务运行器 |
-| Agent 模块 | `domain/services/agents`（BaseAgent ReAct 循环 + EquipmentInsightAgent）、事件流（ToolEvent/MessageEvent/DoneEvent） |
-| 沙箱模块（思路预留） | 工具协议可挂载沙箱执行，基础框架先用进程内工具集 | |
+| 课件章节 | 本框架实现 |
+| --- | --- |
+| 第 5 章 项目初始化 / 通用模块（数据源、统一响应、日志跨域） | `core/config.py` 动态配置、`interfaces/errors` 统一异常、`infrastructure/logging` 日志 |
+| 第 6 章 MCP 协议 | `core/config.py` 的 `MCPConfig`（预留扩展位）、`domain/services/tools` 工具协议 |
+| 第 7/8 章 LLM 模块（可动态配置 + 后台运行） | `domain/external/llm.py` 协议 + `infrastructure/external/llm`（OpenAI/DeepSeek 与 Mock 两种实现）、`application/services/agent_service.py` 后台任务运行器 |
+| 第 9 章 Agent 模块 | `domain/services/agents`（BaseAgent ReAct 循环 + EquipmentInsightAgent）、事件流（ToolEvent / MessageEvent / DoneEvent） |
+| 第 12 章 沙箱模块（思路预留） | 工具协议可挂载沙箱执行，基础框架先用进程内工具集 |
 
 DDD 分层结构：
 
@@ -31,7 +33,7 @@ ims_equipment_agent/                 # 即课件中的 api/ 根
     │   ├── repositories/            # IMemoryRepository / IUnitOfWork
     │   └── services/
     │       ├── agents/              # BaseAgent（ReAct）+ react（设备洞察Agent）
-    │       ├── tools/               # tool 装饰器 + BaseTool + 5 类工具
+    │       ├── tools/               # tool 装饰器 + BaseTool + 6 类工具
     │       └── analysis/            # Theil-Sen + Bootstrap 稳健趋势
     ├── infrastructure/              # 基础设施层（协议的具体实现）
     │   ├── external/llm/            # OpenAILLM(DeepSeek) + MockLLM
@@ -170,3 +172,98 @@ curl -N -X POST http://localhost:8000/api/chat/stream \
 ## 六、技术栈
 
 FastAPI · Uvicorn · OpenAI SDK（兼容 DeepSeek）· Pydantic / pydantic-settings · NumPy（Theil-Sen）· json-repair · uv
+
+---
+
+## 七、趋势分析算法说明（Theil–Sen + Bootstrap）
+
+> **背景**：MES / BI 指标时序普遍存在传感器跳变、停机记录缺失、人工录入错误、试产批次干扰等脏数据。
+> 普通最小二乘（OLS）以残差平方和最小为目标，单个极端离群点即可显著扭转回归直线方向，导致趋势判读失真。
+> 本框架采用 **Theil–Sen 稳健斜率点估计 + Bootstrap 不依赖分布假设的区间估计**，替代基于 OLS 的趋势分析逻辑。
+> 参考实现：[`app/domain/services/analysis/theil_sen.py`](app/domain/services/analysis/theil_sen.py)。
+
+### 7.1 目标与适用范围
+
+| 项目 | 说明 |
+| --- | --- |
+| 目标 1 | 异常值占比 ≤ 29.3% 时，斜率估计保持稳定，不被离群点带偏 |
+| 目标 2 | 不假设正态分布 / 方差齐性，给出斜率的 95% 置信区间 |
+| 目标 3 | 明确的显著性判读规则（置信区间是否跨越 0） |
+| 目标 4 | 可工程化的性能方案，支持万级数据点的在线 / 离线计算 |
+| 适用范围 | 单变量一元线性趋势：指标 y 随时间 t（或批次序号、累计产量）变化 |
+| 样本量 | 建议 n ≥ 10；n 在 20 ~ 2000 区间效果最佳 |
+| 前置条件 | 非平稳、含阶段性跳变的序列需先做分段处理，再分别建模 |
+
+### 7.2 算法原理
+
+**点估计**：对所有点对 `i < j` 且 `xᵢ ≠ xⱼ`，计算单对斜率 `s(ij) = (yⱼ − yᵢ) / (xⱼ − xᵢ)`；取全部 `s(ij)` 的中位数得 `β̂`，截距取 `α̂ = median{ yᵢ − β̂·xᵢ }`。中位数只依赖排序位置，异常值不会像 OLS 那样被平方项放大。
+
+**稳健性来源**：崩溃点（Breakdown Point）是估计量失效前可容忍的污染数据最大比例。Theil–Sen 渐近崩溃点约 **29.3%**，OLS 为 **0%**。该稳健性主要针对 y 方向离群值；x 方向的强杠杆点仍需结合业务规则前置筛查。
+
+**区间估计**：从 n 个样本中成对有放回抽取 n 个 `(x, y)` → 重算 `β*(b)` → 重复 B 次得到经验分布 → 取 2.5% / 97.5% 分位数得 95% CI。
+
+> **关键约束**：必须成对重采样 `(x, y)`，不可分别独立抽取 x 与 y，否则破坏变量间依赖结构、导致区间严重失真（表现为点估计显著、CI 却跨 0）。强自相关时序应改用 **Block Bootstrap**（按连续分块整体抽取），否则区间系统性偏窄。
+
+| 区间构造法 | 构造方式 | 特点与适用 |
+| --- | --- | --- |
+| 百分位法（推荐默认） | 直接取 β* 分布的 2.5% / 97.5% 分位数 | 实现最简单、最常用；样本量与 B 足够时表现良好 |
+| BCa | 百分位法 + 偏差校正与加速（Jackknife 估计偏度） | 小样本、分布偏斜时更准确；实现复杂度较高 |
+| 基础法 | `2β̂ − q(97.5%)` 与 `2β̂ − q(2.5%)` | 较少使用，仅在特定对称情形下等价 |
+
+| 对比维度 | OLS 最小二乘 | Theil–Sen | Theil–Sen + Bootstrap |
+| --- | --- | --- | --- |
+| 崩溃点 | 0%（单点即可失效） | ≈ 29.3% | ≈ 29.3% |
+| 分布假设 | 需正态、方差齐性 | 无 | 无 |
+| 置信区间 | 有解析解（t 分布） | 无现成解 | Bootstrap 经验区间 |
+| 计算复杂度 | O(n) | O(n²) | O(B · n²)，可采样降阶 |
+| 异常值敏感度 | 极高 | 低 | 低 |
+| 工程成熟度 | 极高 | 中 | 中（需自行实现） |
+
+### 7.3 端到端流程与判读规则
+
+| 步骤 | 环节 | 处理内容 | 输出 |
+| --- | --- | --- | --- |
+| S1 | 数据接入 | 按指标维度拉取时序数据 `(t, y)` | 原始序列 |
+| S2 | 前置清洗 | 剔除空值、业务标注为无效的点；x 值去重统计 | 可用序列 |
+| S3 | 点对斜率计算 | 计算所有 `i < j` 的 `s(ij)`，x 相同者对跳过 | 斜率集合 |
+| S4 | 点估计 | 取中位数得 `β̂`，并计算截距 `α̂` | β̂、α̂ |
+| S5 | Bootstrap 重采样 | 成对有放回抽样 B 次，每次重算 `β*` | 经验分布 |
+| S6 | 区间构造 | 取 2.5% / 97.5% 分位数 | 95% CI |
+| S7 | 趋势判读 | 判定 CI 是否跨越 0，输出结论 | 趋势结论 |
+
+```text
+if CI.下界 > 0  -> 显著上升
+if CI.上界 < 0  -> 显著下降
+else            -> 趋势不显著（样本不足以断定方向）
+```
+
+### 7.4 关键参数与取值建议
+
+| 参数 | 建议取值 | 说明 | 本框架现状 |
+| --- | --- | --- | --- |
+| 重采样次数 B | 1000（常规）/ 5000（报告级） | B 越大区间越稳定；B=1000 时端点蒙特卡洛误差约 ±1% | `1000`（函数默认值） |
+| 置信水平 | 95%（α=0.05）；探索性 90%，质量放行 99% | 分位点随置信水平变化，水平越高区间越宽 | `0.95`（函数参数可调） |
+| 点对采样上限 max_pairs | 200,000；n ≤ 632 时无需采样 | n 较大时对点对随机采样近似中位数，控制耗时 | 未实现（见 7.5） |
+| 最小样本量 n | ≥ 10，推荐 ≥ 20 | n < 10 时分位数极不稳定，区间不可用 | 仅 `n < 2` 保护，未设 10 的门槛 |
+| x 重复处理 | 跳过 `dx = 0` 的点对 | 重复率过高需先按 x 聚合 | 已跳过，未做聚合 |
+| 时间序列自相关 | Block Bootstrap，块长 ≈ n^(1/3) | 否则区间会系统性偏窄 | 未实现 |
+| 随机种子 seed | 固定值 | 保证结果可复现，便于回溯与对账 | `42`（固定） |
+
+### 7.5 本框架落地情况
+
+| 方案要求 | 状态 | 实现位置 / 说明 |
+| --- | --- | --- |
+| 点对斜率中位数 `β̂` | 已实现 | `theil_sen_slope()`，向量化按行计算，跳过 `dx = 0` |
+| 截距 `α̂` | 已实现 | `analyze_trend()` 返回 `intercept` |
+| 成对重采样 `(x, y)` + 退化样本跳过 | 已实现 | `bootstrap_ci()`，重采样后按 x 稳定排序 |
+| 百分位法 95% CI | 已实现 | `bootstrap_ci()`，`confidence` 可调 |
+| 三段式显著判读 | 已实现 | 返回 `significant` / `direction` / `conclusion` |
+| 前置清洗（空值 / 非有限值） | 已实现 | `analyze_trend()` 对 x、y 成对 mask，保留时间间距 |
+| 固定 seed、B=1000 | 已实现 | 函数默认值，结果可复现 |
+| 业务无效标记剔除、x 重复聚合、强杠杆点筛查 | 预留 | 属于数据层 / 工具层职责 |
+| `max_pairs` 采样降阶、万级点在线性能 | 预留 | 当前为 `O(B · n²)`，需配置化 + 点对采样 |
+| Block Bootstrap、BCa / 基础法区间 | 预留 | 强自相关时序接入真实数据源后需要 |
+| 分段建模（非平稳 / 阶段跳变） | 预留 | — |
+| 参数进 `config.yaml`、脏数据样本与单测 | 预留 | 当前参数写在函数签名中 |
+
+> **调用链**：`TrendTool.analyze_trend`（按 eid / param / window 取数并切窗）→ `analyze_trend()`；`PredictionTool` 取 `sen_slope` 作退化特征，`ChartTool` 用 `theil_sen_slope()` 画稳健趋势线。三者共享同一无状态算法模块，可独立单测、可复用。
