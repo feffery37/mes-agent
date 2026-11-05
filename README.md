@@ -6,17 +6,17 @@
 
 ---
 
-## 一、与课件架构的对应关系（一样的架构）
+## 一、架构
 
-| 课件章节 | 本框架实现 |
+| 本框架实现 |
 | --- | --- |
-| 第5章 项目初始化 / 通用模块（数据源、统一响应、日志跨域） | `core/config.py` 动态配置、`interfaces/errors` 统一异常、`infrastructure/logging` 日志 |
-| 第6章 MCP 协议初识 | `core/config.py` 的 `MCPConfig`（预留扩展位）、`domain/services/tools` 工具协议 |
-| 第7/8章 LLM 模块（可动态配置 + 后台运行） | `domain/external/llm.py` 协议 + `infrastructure/external/llm`（OpenAI/DeepSeek 与 Mock 两种实现）、`application/services/agent_service.py` 后台任务运行器 |
-| 第9章 Agent 模块 | `domain/services/agents`（BaseAgent ReAct 循环 + EquipmentInsightAgent）、事件流（ToolEvent/MessageEvent/DoneEvent） |
-| 第12章 沙箱模块（思路预留） | 工具协议可挂载沙箱执行，基础框架先用进程内工具集 |
+| 项目初始化 / 通用模块（数据源、统一响应、日志跨域） | `core/config.py` 动态配置、`interfaces/errors` 统一异常、`infrastructure/logging` 日志 |
+| MCP 协议 | `core/config.py` 的 `MCPConfig`（预留扩展位）、`domain/services/tools` 工具协议 |
+| LLM 模块（可动态配置 + 后台运行） `domain/external/llm.py` 协议 + `infrastructure/external/llm`（OpenAI/DeepSeek 与 Mock 两种实现）、`application/services/agent_service.py` 后台任务运行器 |
+| Agent 模块 | `domain/services/agents`（BaseAgent ReAct 循环 + EquipmentInsightAgent）、事件流（ToolEvent/MessageEvent/DoneEvent） |
+| 沙箱模块（思路预留） | 工具协议可挂载沙箱执行，基础框架先用进程内工具集 | |
 
-DDD 分层结构（与课件一致）：
+DDD 分层结构：
 
 ```
 ims_equipment_agent/                 # 即课件中的 api/ 根
@@ -53,7 +53,7 @@ ims_equipment_agent/                 # 即课件中的 api/ 根
 
 ---
 
-## 二、内置的 5 类设备运维工具（对应方案第7章 工具设计）
+## 二、内置的 5 类设备运维工具（工具设计）
 
 | 工具集 | 工具 | 说明 |
 | --- | --- | --- |
@@ -82,7 +82,7 @@ uv run uvicorn app.main:app --reload --port 8000
 
 > 后端 API 文档：`http://localhost:8000/docs`。
 
-### 前端（Next.js，与课件 UI 同架构）
+### 前端（Next.js）
 前端工程位于 `ui/`（Next.js 16 + React 19 + TypeScript + Tailwind 4 + Radix/shadcn 风格组件），
 通过 `POST /api/chat/stream` 的 SSE 流实时展示「工具调用过程 + 最终结论」，并支持多轮对话（复用 `session_id`）。
 
@@ -97,7 +97,7 @@ npm run dev        # 开发服务器，默认 http://localhost:3000
 > 前端通过环境变量 `NEXT_PUBLIC_API_BASE_URL` 连接后端，默认 `http://localhost:8000/api`（见 `ui/.env.local`）；
 > 生产构建可改为 `/api` 由 Nginx 反向代理。后端已开启 CORS，开发环境可直接跨端口调用。
 >
-> 目录结构（对齐课件 `ui/`）：
+> 目录结构（`ui/`）：
 > ```
 > ui/src/
 > ├── app/                # 页面（layout.tsx 顶栏 + page.tsx 对话页）
