@@ -19,6 +19,8 @@ export interface ToolCallEvent {
   function_name: string
   function_args: Record<string, unknown>
   function_result: ToolResult | null
+  /** 可选：本轮决策的模型思维链（reasoning_content），无则为 null */
+  reasoning?: string | null
   status: "calling" | "called"
   /** 可选：工具执行的简短说明（部分工具提供） */
   summary?: string
@@ -31,6 +33,8 @@ export interface AssistantMessageEvent {
   created_at: string
   role: "assistant"
   message: string
+  /** 可选：最终回答对应的模型思维链（reasoning_content），无则为 null */
+  reasoning?: string | null
   attachments: unknown[]
 }
 

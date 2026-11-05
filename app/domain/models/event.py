@@ -34,6 +34,7 @@ class MessageEvent(BaseEvent):
     type: Literal["message"] = "message"
     role: Literal["user", "assistant"] = "assistant"
     message: str = ""
+    reasoning: Optional[str] = Field(default=None, description="模型思维链（reasoning_content），无则为 None")
     attachments: List[Dict[str, Any]] = Field(default_factory=list)
 
 
@@ -45,6 +46,7 @@ class ToolEvent(BaseEvent):
     function_name: str                               # 具体工具函数名
     function_args: Dict[str, Any]
     function_result: Optional[ToolResult] = None
+    reasoning: Optional[str] = Field(default=None, description="本轮决策的模型思维链（reasoning_content）")
     status: ToolEventStatus = ToolEventStatus.CALLING
 
 

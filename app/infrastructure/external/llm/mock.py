@@ -74,7 +74,7 @@ class MockLLM(LLM):
         return "query_equipment", {"eid": 1}
 
     def _summarize(self, messages: List[Dict[str, Any]]) -> str:
-        """根据工具结果生成最终中文回答（演示用）。"""
+        """根据工具结果生成最终中文回答（演示用，遵循「分析思路 -> 结论」格式约定）。"""
         parts = []
         for m in messages:
             if m.get("role") == "tool":
@@ -87,7 +87,10 @@ class MockLLM(LLM):
         if not parts:
             return "（未获取到工具数据）"
         return (
-            "根据以下工具返回，为您汇总设备洞察结论：\n"
+            "## 分析思路\n"
+            f"- 本轮共调用 {len(parts)} 项工具获取定量数据，按「查现状 → 看趋势 → 找原因 → 问对策」路径整理。\n"
+            "- 将返回值中的关键指标与控制限对比，判断当前设备状态是否需要干预。\n\n"
+            "## 结论\n"
             + "\n".join(parts)
             + "\n\n（以上由 iMES 设备洞察 Agent 演示模式生成，接入真实 LLM 后将给出自然语言推理。）"
         )
@@ -101,7 +104,12 @@ class MockLLM(LLM):
     ) -> Dict[str, Any]:
         # 已经执行过工具 -> 生成最终回答
         if self._has_tool_result(messages):
-            return {"role": "assistant", "content": self._summarize(messages)}
+            return {
+                "role": "assistant",
+                "content": self._summarize(messages),
+                "reasoning_content": "已获得工具返回的定量结论。现在把关键数据与控制限对比，"
+                                     "按「分析思路 -> 结论」的格式组织最终回答，并落到可执行建议。",
+            }
 
         # 否则根据意图选择一个工具并构造 tool_calls
         query = self._last_user_text(messages)
@@ -112,9 +120,15 @@ class MockLLM(LLM):
             return {"role": "assistant", "content": f"（演示模式：未找到适配工具，原始问题：{query}）"}
 
         call_id = "call_" + uuid.uuid4().hex[:12]
+        reasoning = (
+            f"用户的问题是「{query}」。先做意图判断：该问题需要定量数据支撑，"
+            f"因此第一步调用 {tool_name}（参数：{args}）获取设备现状；"
+            "拿到结果后再决定是否需要进一步做趋势分析或知识库检索。"
+        )
         return {
             "role": "assistant",
             "content": None,
+            "reasoning_content": reasoning,
             "tool_calls": [
                 {
                     "id": call_id,

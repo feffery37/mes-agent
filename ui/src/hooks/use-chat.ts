@@ -9,6 +9,8 @@ export type ChatTurn = {
   user: string
   tools: ToolCallEvent[]
   answer: string
+  /** 模型思维链（reasoning_content），取本轮最早收到的非空值 */
+  reasoning?: string
   streaming: boolean
   error?: string
 }
@@ -51,10 +53,14 @@ export function useChat() {
                 const idx = tools.findIndex((x) => x.tool_call_id === ev.tool_call_id)
                 if (idx >= 0) tools[idx] = ev
                 else tools.push(ev)
-                return { ...t, tools }
+                return {
+                  ...t,
+                  tools,
+                  reasoning: t.reasoning ?? ev.reasoning ?? undefined,
+                }
               }
               case "message":
-                return { ...t, answer: ev.message }
+                return { ...t, answer: ev.message, reasoning: t.reasoning ?? ev.reasoning ?? undefined }
               case "error":
                 return { ...t, error: ev.error, streaming: false }
               default:

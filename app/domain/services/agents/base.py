@@ -170,6 +170,7 @@ class BaseAgent(ABC):
                     tool_name=tool.name,
                     function_name=function_name,
                     function_args=function_args,
+                    reasoning=message.get("reasoning_content"),
                     status=ToolEventStatus.CALLING,
                 )
 
@@ -181,6 +182,7 @@ class BaseAgent(ABC):
                     function_name=function_name,
                     function_args=function_args,
                     function_result=result,
+                    reasoning=message.get("reasoning_content"),
                     status=ToolEventStatus.CALLED,
                 )
 
@@ -196,6 +198,6 @@ class BaseAgent(ABC):
             yield ErrorEvent(error=f"Agent迭代超过最大迭代次数: {self._agent_config.max_iterations}")
 
         if message and message.get("content") is not None:
-            yield MessageEvent(message=message["content"])
+            yield MessageEvent(message=message["content"], reasoning=message.get("reasoning_content"))
         else:
             yield ErrorEvent(error="Agent未能生成有效回复内容")

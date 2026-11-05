@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { Send, Cpu, Loader2, Sparkles, ArrowUpRight, ChevronDown } from "lucide-react"
+import { Send, Cpu, Loader2, Sparkles, ArrowUpRight, ChevronDown, Brain } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { Button } from "@/components/ui/button"
@@ -85,6 +85,17 @@ export default function Page() {
                   设
                 </div>
                 <div className="min-w-0 flex-1 space-y-3">
+                  {turn.reasoning && (
+                    <details className="rounded-xl border border-dashed border-border bg-secondary/40">
+                      <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground [&::-webkit-details-marker]:hidden">
+                        <Brain className="h-3.5 w-3.5" strokeWidth={1.8} />
+                        思考过程
+                      </summary>
+                      <div className="whitespace-pre-wrap border-t border-dashed border-border px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
+                        {turn.reasoning}
+                      </div>
+                    </details>
+                  )}
                   {turn.tools.length > 0 && (
                     <details open className="group rounded-xl border border-border bg-secondary/50">
                       <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground [&::-webkit-details-marker]:hidden">
