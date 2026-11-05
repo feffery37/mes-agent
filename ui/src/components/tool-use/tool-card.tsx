@@ -21,13 +21,13 @@ export function ToolCard({ tool }: { tool: ToolCallEvent }) {
   const ok = tool.function_result?.success !== false
 
   return (
-    <Card className="overflow-hidden border-border bg-secondary/40">
+    <Card className="overflow-hidden border-border bg-background shadow-none">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-secondary/60"
+        className="flex w-full items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-secondary"
       >
-        <span className="grid h-7 w-7 place-items-center rounded-md bg-primary/15 text-primary">
+        <span className="grid h-7 w-7 place-items-center rounded-md border border-border bg-secondary text-foreground">
           {calling ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
@@ -59,7 +59,7 @@ export function ToolCard({ tool }: { tool: ToolCallEvent }) {
         <div className="space-y-2 border-t border-border px-3 py-2">
           <div>
             <div className="mb-1 text-xs text-muted-foreground">入参</div>
-            <pre className="max-h-48 overflow-auto rounded-md bg-background/60 p-2 text-xs text-foreground/90">
+            <pre className="max-h-48 overflow-auto rounded-lg bg-secondary p-2 font-mono text-xs text-foreground/80">
               {pretty(tool.function_args)}
             </pre>
           </div>
@@ -68,7 +68,7 @@ export function ToolCard({ tool }: { tool: ToolCallEvent }) {
               <div className="mb-1 text-xs text-muted-foreground">
                 返回{tool.function_result.message ? ` · ${tool.function_result.message}` : ""}
               </div>
-              <pre className="max-h-64 overflow-auto rounded-md bg-background/60 p-2 text-xs text-foreground/90">
+              <pre className="max-h-64 overflow-auto rounded-lg bg-secondary p-2 font-mono text-xs text-foreground/80">
                 {pretty(tool.function_result.data ?? {})}
               </pre>
             </div>

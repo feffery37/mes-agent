@@ -23,10 +23,10 @@ export function StatusPill() {
   }, [])
 
   return (
-    <Badge variant={online ? "success" : "destructive"}>
+    <Badge variant="secondary" className={online ? "font-normal" : "text-destructive"}>
       <span
-        className={`mr-1 inline-block h-2 w-2 rounded-full ${
-          online ? "bg-brand-2" : "bg-destructive"
+        className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${
+          online ? "bg-foreground" : "bg-destructive"
         }`}
       />
       {text}
