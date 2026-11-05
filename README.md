@@ -85,6 +85,22 @@ uv run uvicorn app.main:app --reload --port 8000
 前端工程位于 `ui/`（Next.js 16 + React 19 + TypeScript + Tailwind 4 + Radix/shadcn 风格组件），
 通过 `POST /api/chat/stream` 的 SSE 流实时展示「工具调用过程 + 最终结论」，并支持多轮对话（复用 `session_id`）。
 
+#### 界面预览
+
+首页空状态与示例提问：
+
+![首页空状态](docs/images/ui-empty-state.png)
+
+设备报警分析示例（含分析思路、风险判定与处理建议，长回答分两屏）：
+
+![报警分析 · 分析思路与结论](docs/images/ui-alarm-1.png)
+
+![报警分析 · 根因与建议动作](docs/images/ui-alarm-2.png)
+
+趋势分析对话（工具调用过程 + 最终结论）：
+
+![趋势分析对话](docs/images/ui-preview.png)
+
 ```bash
 # 另开终端，进入前端目录
 cd ui
@@ -103,6 +119,7 @@ npm run dev        # 开发服务器，默认 http://localhost:3000
 > ├── components/
 > │   ├── ui/             # shadcn 风格基础组件（button/card/input/textarea/badge/avatar/scroll-area/separator）
 > │   ├── tool-use/       # 工具调用可视化卡片（calling/called 状态、入参与返回）
+> │   ├── chart/          # 图表渲染（Recharts：趋势折线图 / 报警分布柱状图 / 风险柱状图）
 > │   └── status-pill.tsx # 顶栏 LLM 状态指示
 > ├── hooks/use-chat.ts   # 管理对话轮次与流式事件
 > └── lib/api/            # 类型定义 / 配置 / SSE 客户端 / 状态接口
