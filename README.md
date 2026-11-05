@@ -1,6 +1,6 @@
 # iMES 设备洞察 Agent —— 基础框架
 
-面向**制造业设备运维**的对话式分析助手基础框架。架构参考课件源码 `imooc-mas`（DDD 分层多智能体系统），并按你的《iMES 设备洞察 Agent 总体技术方案》做了**制造业领域适配**。使用 **uv** 管理 Python 工程。
+面向**制造业设备运维**的对话式分析助手基础框架。DDD 分层多智能体系统，使用 **uv** 管理 Python 工程。
 
 > 定位：**查现状 → 看趋势 → 找原因 → 问对策** 的闭环。班组长 / 设备工程师用自然语言即可完成设备洞察。
 
@@ -61,7 +61,7 @@ ims_equipment_agent/                 # 即课件中的 api/ 根
 | `knowledge` | `search_knowledge` | SOP / 历史案例检索（关键词 + 机型过滤） |
 | `workorder` | `create_workorder` / `query_workorder` | 创建设备维修工单（落地可执行动作） |
 
-接入真实 LLM（DeepSeek）后，`EquipmentInsightAgent` 会按意图自主选择并串联这些工具，输出自然语言结论。
+接入真实 LLM（DeepSeek、openAI）后，`EquipmentInsightAgent` 会按意图自主选择并串联这些工具，输出自然语言结论。
 
 ---
 
