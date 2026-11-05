@@ -1,4 +1,4 @@
-# iMES 设备洞察 Agent —— 基础框架
+# MES 设备洞察 Agent —— 基础框架
 
 面向**制造业设备运维**的对话式分析助手基础框架。DDD 分层多智能体系统，使用 **uv** 管理 Python 工程。
 
@@ -134,10 +134,10 @@ curl -N -X POST http://localhost:8000/api/chat/stream \
 ## 五、如何扩展（对照方案落地）
 
 1. **替换真实数据源**：在 `app/infrastructure/data/` 增加数据库/时序库实现，或把工具改为调用真实 MES / 数仓接口（保持返回 `ToolResult`）。
-2. **接入 MCP**：参考第6章，新增 `app/domain/services/tools/mcp.py` 实现 `BaseTool`，在 `AgentService._tools` 注册；`MCPConfig` 已预留。
+2. **接入 MCP**：新增 `app/domain/services/tools/mcp.py` 实现 `BaseTool`，在 `AgentService._tools` 注册；`MCPConfig` 已预留。
 3. **持久化记忆**：把 `InMemoryMemoryRepository` 换成 Postgres/Redis 实现（`IMemoryRepository` 接口不变）。
-4. **接入故障预测模型**：用 LightGBM + 真实 SHAP 替换 `prediction.py` 中的演示式评分（见方案第5章 ADR）。
-5. **多 Agent 协作**：参考第2章，新增 `PlannerAgent`，由 `AgentService` 编排多个 `BaseAgent`。
+4. **接入故障预测模型**：用 LightGBM + 真实 SHAP 替换 `prediction.py` 中的演示式评分。
+5. **多 Agent 协作**：新增 `PlannerAgent`，由 `AgentService` 编排多个 `BaseAgent`。
 
 ---
 
