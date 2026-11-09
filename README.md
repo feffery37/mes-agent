@@ -19,7 +19,7 @@
 DDD 分层结构：
 
 ```
-ims_equipment_agent/                 # 即课件中的 api/ 根
+ims_equipment_agent/                 #  / 根
 ├── pyproject.toml                   # uv 工程管理
 ├── config.yaml                      # 业务配置（agent/llm/mcp/data_source）
 ├── .env.example                     # 环境变量样例
