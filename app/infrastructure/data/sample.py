@@ -72,6 +72,37 @@ PARAM_TS: Dict[int, Dict[str, List[Dict]]] = {
 }
 
 # ---------------------------------------------------------------------------
+# 3.1 受控基线期 EQ_PARAM_BASELINE（SPC 用于估计 center / sigma）
+#     紧接在当前 168 小时窗口之前；少量点标记停机 / 试产 / 复测口径并排除。
+# ---------------------------------------------------------------------------
+def _gen_baseline(center: float, n: int = 720) -> List[Dict]:
+    now = datetime.now().replace(minute=0, second=0, microsecond=0)
+    excluded = {120: "停机", 121: "停机", 400: "试产批次", 560: "复测口径切换"}
+    points = []
+    for i in range(n):
+        t = now - timedelta(hours=(n + 168 - 1 - i))
+        point = {
+            "ts": t.strftime("%Y-%m-%d %H:%M"),
+            "value": round(center + (i % 11 - 5) * 0.7, 2),
+        }
+        if i in excluded:
+            point.update({"value": round(center + 18.0, 2), "excluded": True, "reason": excluded[i]})
+        points.append(point)
+    return points
+
+
+BASELINE_TS: Dict[int, Dict[str, List[Dict]]] = {
+    1: {"TEMP_NOZZLE": _gen_baseline(196.0, 720)},
+    2: {"ENV_TEMP": _gen_baseline(24.5, 720)},
+}
+
+# 口径版本：规格 / 复测口径变更时递增，SPC 判定据此提示结论不可用
+PARAM_META: Dict[int, Dict[str, Dict]] = {
+    1: {"TEMP_NOZZLE": {"limits_version": "v3", "baseline_hours": 720}},
+    2: {"ENV_TEMP": {"limits_version": "v1", "baseline_hours": 720}},
+}
+
+# ---------------------------------------------------------------------------
 # 4. 知识库 / SOP KB_DOCUMENT
 # ---------------------------------------------------------------------------
 KB_DOCUMENT: List[Dict] = [

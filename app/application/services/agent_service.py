@@ -38,6 +38,7 @@ from app.infrastructure.external.llm.openai_llm import OpenAILLM
 from app.infrastructure.repositories.memory import InMemoryMemoryRepository
 from core.config import AgentConfig, AppConfig, LLMConfig, get_app_config
 from app.domain.services.tools.notification import NotificationTool
+from app.domain.services.tools.spc import SpcTool
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +111,7 @@ class AgentService:
             WorkOrderTool(),
             ChartTool(),
             NotificationTool(),
+            SpcTool(),
         ]
         self._llm: Optional[LLM] = None
         self._sessions: Dict[str, _SessionState] = {}

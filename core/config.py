@@ -94,6 +94,21 @@ class NotifyConfig(BaseModel):
     timeout_seconds: float = 5.0
 
 
+class SpcConfig(BaseModel):
+    """SPC 控制图判异配置。"""
+
+    enabled: bool = True
+    sigma_method: str = "mad"           # mad | mr
+    baseline_window_hours: int = 720
+    rules: List[str] = Field(default_factory=lambda: ["N1", "N2", "N3", "N5", "N6", "C1"])
+    n_min: int = 10                     # 少于该点数直接【无法判断】
+    downgrade_n: int = 30               # 少于该点数降级【推测】
+    c1_min_points: int = 3
+    c1_min_slope: float = 0.0
+    require_two_rules: bool = True      # 非 critical 时，需 ≥2 条规则才判「失控」
+    max_segments_per_rule: int = 5      # 同规则多段明细的展示上限，总数仍如实给出
+
+
 class AppConfig(BaseModel):
     """聚合的业务配置。"""
 
@@ -101,6 +116,7 @@ class AppConfig(BaseModel):
     llm: LLMConfig = Field(default_factory=LLMConfig)
     mcp: MCPConfig = Field(default_factory=MCPConfig)
     notify: NotifyConfig = Field(default_factory=NotifyConfig)
+    spc: SpcConfig = Field(default_factory=SpcConfig)
     data_source: dict = Field(default_factory=dict)
 
 

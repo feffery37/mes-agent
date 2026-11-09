@@ -301,3 +301,33 @@ else            -> 趋势不显著（样本不足以断定方向）
 
 分层与 LLM 模块对称：`domain/external/notifier.py` 定义协议 → `infrastructure/external/notify/` 放渠道实现
 → `application/services/notification_service.py` 管理草稿与投递。配置见 `config.yaml` 的 `notify` 段与 `.env.example`。
+
+---
+
+## 九、SPC 控制图判异（P0，只读）
+
+`check_spc_rules` 是**只读分析工具**，与 `analyze_trend` 同类：模型按需调用，不产生副作用、不触发自动通知。
+
+**先分清两个「限」**：`control_min/control_max` 是工艺规格限（判合格），SPC 的 `±3σ` 是统计控制限（判受控），
+后者只能用「受控基线期」数据估计，不能拿规格限换算。基线期见 `sample.py` 的 `BASELINE_TS`，
+已标记停机 / 试产批次 / 复测口径切换点并在估计前排除；口径版本见 `PARAM_META.limits_version`。
+
+**σ 估计**：默认 `σ = 1.4826 × MAD`（稳健，与 Theil-Sen 抗脏数据思路一致），可选 `MR̄/1.128`（I-MR）。
+用含漂移的当前窗口自估 σ 会被拉大导致漏报，因此实现上强制走基线期。
+
+| 规则 | 条件 | 检出 |
+| --- | --- | --- |
+| N1 | 1 点超 ±3σ | 传感器跳变 / 突发异常 |
+| N2 | 连续 9 点在中心线同侧 | 均值偏移 |
+| N3 | 连续 6 点单调增减 | 缓慢漂移（与 Theil-Sen + Bootstrap 交叉验证） |
+| N5 | 连续 3 点中 2 点超 ±2σ 同侧 | 中度偏移 |
+| N6 | 连续 5 点中 4 点超 ±1σ 同侧 | 小偏移 |
+| C1 | 连续 ≥3 点超 ±1σ 且呈线性（Theil-Sen 斜率同向） | 自定义：漂移叠加越界 |
+
+滑窗命中会合并为连续区间，避免逐点重复报；`require_two_rules: true` 时非 critical 违规需 ≥2 条才判「失控」，降低多规则叠加的误报。
+
+**输出**：`center / sigma / ±1~3σ / 违规清单（rule_id、起止时间、z 值、severity）/ verdict / grade / caveats / cross_check / time_range`，全部数值来自工具内部计算。结论按 `n < 30` 降级【推测】、`n < 10` 或基线离散度为 0 判【无法判断】；规则命中只说明异常，根因「相关，因果待验证」。
+
+**分层**：`domain/services/analysis/spc.py`（纯函数，可单测）→ `domain/models/spc_result.py`（结果模型）→ `domain/services/tools/spc.py`（`@tool` 入口）→ `config.yaml` 的 `spc` 段。单测见 `tests/test_spc.py`，覆盖 6 类异常模式与稳健性。
+
+> 预留（P1）：`plot_control_chart` 控制图（实测值 + CL + σ 带 + 违规点标红）、Cpk / 过程能力、按设备订阅的规则白名单。

@@ -36,3 +36,16 @@ notify:
       webhook_env: WECOM_WEBHOOK_URL   # 只写变量名，值放 .env
   retry: 2
   timeout_seconds: 5
+
+# SPC 控制图判异（只读分析工具，不触发任何写操作 / 自动通知）
+spc:
+  enabled: true
+  sigma_method: "mad"         # mad（稳健）| mr（I-MR 移动极差）
+  baseline_window_hours: 720  # 用受控基线期估 σ，不能用含漂移的当前窗口
+  rules: ["N1", "N2", "N3", "N5", "N6", "C1"]
+  n_min: 10                   # 少于该点数直接【无法判断】
+  downgrade_n: 30             # 少于该点数降级【推测】
+  c1_min_points: 3            # 自定义规则：连续几点超 ±1σ 且呈线性
+  c1_min_slope: 0.0
+  require_two_rules: true     # 防误报：非 critical 时需 ≥2 条规则才判「失控」
+  max_segments_per_rule: 5    # 同规则多段明细展示上限（总数仍如实给出）

@@ -20,6 +20,12 @@ logger = logging.getLogger(__name__)
 
 # 意图关键词 -> (工具名, 默认参数构造器)
 _INTENT_RULES = [
+    # SPC 判异意图优先（只读分析）
+    ("SPC", "check_spc_rules", lambda q: {"eid": 1, "window": "7d"}),
+    ("spc", "check_spc_rules", lambda q: {"eid": 1, "window": "7d"}),
+    ("判异", "check_spc_rules", lambda q: {"eid": 1, "window": "7d"}),
+    ("失控", "check_spc_rules", lambda q: {"eid": 1, "window": "7d"}),
+    ("控制图", "check_spc_rules", lambda q: {"eid": 1, "window": "7d"}),
     # 通知意图优先：只生成待确认草稿，是否发送仍由用户点击决定
     ("通知", "draft_notification", lambda q: {"title": "设备运维通知", "body": f"用户请求：「{q}」", "level": "warning"}),
     ("推送", "draft_notification", lambda q: {"title": "设备运维通知", "body": f"用户请求：「{q}」", "level": "warning"}),
