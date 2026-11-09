@@ -36,6 +36,18 @@ EQUIPMENT: Dict[int, Dict] = {
         "param": "ENV_TEMP",
         "param_desc": "环境温度",
     },
+    # 3 号与 1 号同产线、同参数，作为 SPC 多设备同期对比的受控对照组
+    3: {
+        "eid": 3,
+        "name": "3号邦定机",
+        "model": "ASM-AD830",
+        "line": "SMT-A",
+        "control_min": 190.0,
+        "control_max": 210.0,
+        "unit": "℃",
+        "param": "TEMP_NOZZLE",
+        "param_desc": "喷嘴温度",
+    },
 }
 
 # ---------------------------------------------------------------------------
@@ -66,9 +78,21 @@ def _gen_series(eid: int, base: float, slope: float, n: int = 168) -> List[Dict]
     return series
 
 
+def _gen_stable_series(center: float, n: int = 168) -> List[Dict]:
+    """受控对照序列：交替小噪声，无趋势、无连续单调、无越界。"""
+    now = datetime.now().replace(minute=0, second=0, microsecond=0)
+    series = []
+    for i in range(n):
+        t = now - timedelta(hours=(n - 1 - i))
+        value = center + (0.6 if i % 2 else -0.6) + (i % 5 - 2) * 0.15
+        series.append({"ts": t.strftime("%Y-%m-%d %H:%M"), "value": round(value, 2)})
+    return series
+
+
 PARAM_TS: Dict[int, Dict[str, List[Dict]]] = {
     1: {"TEMP_NOZZLE": _gen_series(1, 196.0, 0.42, 168)},
     2: {"ENV_TEMP": _gen_series(2, 24.5, 0.02, 168)},
+    3: {"TEMP_NOZZLE": _gen_stable_series(196.0, 168)},
 }
 
 # ---------------------------------------------------------------------------
@@ -94,12 +118,34 @@ def _gen_baseline(center: float, n: int = 720) -> List[Dict]:
 BASELINE_TS: Dict[int, Dict[str, List[Dict]]] = {
     1: {"TEMP_NOZZLE": _gen_baseline(196.0, 720)},
     2: {"ENV_TEMP": _gen_baseline(24.5, 720)},
+    3: {"TEMP_NOZZLE": _gen_baseline(196.0, 720)},
 }
 
 # 口径版本：规格 / 复测口径变更时递增，SPC 判定据此提示结论不可用
 PARAM_META: Dict[int, Dict[str, Dict]] = {
     1: {"TEMP_NOZZLE": {"limits_version": "v3", "baseline_hours": 720}},
     2: {"ENV_TEMP": {"limits_version": "v1", "baseline_hours": 720}},
+    3: {"TEMP_NOZZLE": {"limits_version": "v3", "baseline_hours": 720}},
+}
+
+# 口径变更历史：effective_from 落在基线期或当前窗口内时，sigma 与判异结论需人工复核
+LIMITS_HISTORY: Dict[int, Dict[str, List[Dict]]] = {
+    1: {"TEMP_NOZZLE": [
+        {"version": "v2", "effective_from": "2026-08-01 00:00",
+         "spec_min": 190.0, "spec_max": 210.0, "reason": "初始规格"},
+        {"version": "v3", "effective_from": "2026-09-20 00:00",
+         "spec_min": 190.0, "spec_max": 210.0, "reason": "复测口径切换（基线期之前）"},
+    ]},
+    2: {"ENV_TEMP": [
+        {"version": "v1", "effective_from": "2026-01-01 00:00",
+         "spec_min": 23.0, "spec_max": 27.0, "reason": "初始规格"},
+    ]},
+    3: {"TEMP_NOZZLE": [
+        {"version": "v2", "effective_from": "2026-08-01 00:00",
+         "spec_min": 190.0, "spec_max": 210.0, "reason": "初始规格"},
+        {"version": "v3", "effective_from": "2026-11-05 00:00",
+         "spec_min": 190.0, "spec_max": 210.0, "reason": "复测口径切换（当前窗口内，演示告警）"},
+    ]},
 }
 
 # ---------------------------------------------------------------------------

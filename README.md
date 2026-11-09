@@ -330,4 +330,16 @@ else            -> 趋势不显著（样本不足以断定方向）
 
 **分层**：`domain/services/analysis/spc.py`（纯函数，可单测）→ `domain/models/spc_result.py`（结果模型）→ `domain/services/tools/spc.py`（`@tool` 入口）→ `config.yaml` 的 `spc` 段。单测见 `tests/test_spc.py`，覆盖 6 类异常模式与稳健性。
 
-> 预留（P1）：`plot_control_chart` 控制图（实测值 + CL + σ 带 + 违规点标红）、Cpk / 过程能力、按设备订阅的规则白名单。
+### P1 已实现
+
+| 能力 | 说明 |
+| --- | --- |
+| 控制图 | `plot_control_chart` 产出 chart spec：实测值 + CL + ±1/2/3σ 虚线 + 规格限参考线 + 超出 ±3σ 的点标红；前端 `chart-card.tsx` 按 `style: limit / marker` 渲染，图表下方标注红点数与 `LIMITS_VERSION` |
+| C1 自定义规则 | 参数化：`c1_min_points` / `c1_sigma` / `c1_min_slope`；`explain_spc_rule` 返回规则条件、含义、局限与当前生效参数 |
+| LIMITS_VERSION 校验 | `LIMITS_HISTORY` 记录规格 / 复测口径变更；`expected_version` 与当前版本不符时**硬失败拒绝判定**，变更落在基线期或窗口内时结论降级【推测】并主动提示 |
+| 多设备同期对比 | `check_spc_rules(compare_peers=true)` 按「同产线 + 同参数」找对照机台，各用自己的受控基线估 σ，输出 verdict / 命中规则 / 最大 z / 是否同类模式；结论如实转述「其他机台同期也异常」（硬纪律第 7 条） |
+
+样本中新增 3 号邦定机（同产线同参数的受控对照），其 `LIMITS_HISTORY` 含窗口内口径变更，用于演示版本校验告警。
+以上工具均为**只读**，不触发任何自动通知。
+
+> P2 预留：Cpk / 过程能力、停机与试产白名单、与知识库 SOP 联动、按设备订阅的规则集。

@@ -105,8 +105,12 @@ class SpcConfig(BaseModel):
     downgrade_n: int = 30               # 少于该点数降级【推测】
     c1_min_points: int = 3
     c1_min_slope: float = 0.0
+    c1_sigma: float = 1.0               # C1 的越界阈值（单位：sigma）
     require_two_rules: bool = True      # 非 critical 时，需 ≥2 条规则才判「失控」
     max_segments_per_rule: int = 5      # 同规则多段明细的展示上限，总数仍如实给出
+    expected_limits_version: str = ""   # 非空时强制校验口径版本
+    compare_peers_by_default: bool = False
+    control_chart_max_points: int = 72
 
 
 class AppConfig(BaseModel):

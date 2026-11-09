@@ -22,7 +22,7 @@ RULE_TITLES = {
     "N3": "连续 6 点单调上升 / 下降",
     "N5": "连续 3 点中 2 点超出 ±2σ（同侧）",
     "N6": "连续 5 点中 4 点超出 ±1σ（同侧）",
-    "C1": "连续多点超出 ±1σ 且呈线性分布",
+    "C1": "连续多点越界且呈线性分布（C1 自定义）",
 }
 
 RULE_SEVERITY = {
@@ -32,6 +32,39 @@ RULE_SEVERITY = {
     "N5": "warning",
     "N6": "warning",
     "C1": "warning",
+}
+
+RULE_DESCRIPTIONS = {
+    "N1": {
+        "condition": "任一点 |z| > 3",
+        "meaning": "突发异常 / 传感器跳变 / 单点录入错误",
+        "limitation": "对缓慢漂移不敏感；强自相关时序下误报率上升",
+    },
+    "N2": {
+        "condition": "连续 ≥9 点位于中心线同侧（z=0 中断游程）",
+        "meaning": "过程均值发生偏移",
+        "limitation": "不能区分阶跃与缓慢漂移，需结合 N3 / Theil-Sen 判读",
+    },
+    "N3": {
+        "condition": "连续 ≥6 点严格单调增或减",
+        "meaning": "趋势性漂移",
+        "limitation": "周期性噪声会造成多段短命中，不代表全程单调",
+    },
+    "N5": {
+        "condition": "任意连续 3 点中 ≥2 点超出 ±2σ 且同侧",
+        "meaning": "中度偏移",
+        "limitation": "滑窗规则会重叠，实现上已合并为连续区间",
+    },
+    "N6": {
+        "condition": "任意连续 5 点中 ≥4 点超出 ±1σ 且同侧",
+        "meaning": "小幅但持续的偏移",
+        "limitation": "sigma 若被漂移数据高估会漏报，必须用受控基线期估计",
+    },
+    "C1": {
+        "condition": "连续 ≥c1_min_points 点超出 ±c1_sigma 且同侧，Theil-Sen 斜率同向",
+        "meaning": "自定义：连续越界并呈线性分布（用户定义场景）",
+        "limitation": "非 Nelson 标准规则；阈值、最小点数需按工艺校准，建议与 N3 交叉验证",
+    },
 }
 
 
@@ -141,6 +174,7 @@ def evaluate_rules(
         rules: Sequence[str],
         c1_min_points: int = 3,
         c1_min_slope: float = 0.0,
+        c1_sigma: float = 1.0,
 ) -> List[Dict]:
     """按规则集检出违规，返回已合并的命中清单。"""
     vals = [float(v) for v in values]
@@ -190,7 +224,10 @@ def evaluate_rules(
 
     # C1 自定义：连续 ≥c1_min_points 点全在 ±1σ 外同侧，且呈线性（Theil-Sen 斜率同向）
     if "C1" in selected:
-        side = [1 if zi > 1 else (-1 if zi < -1 else 0) for zi in z]
+        side = [
+            1 if zi > c1_sigma else (-1 if zi < -c1_sigma else 0)
+            for zi in z
+        ]
         run = 0
         for i in range(1, n + 1):
             broken = i == n or side[i] == 0 or side[i] != side[run]
@@ -223,6 +260,6 @@ def evaluate_rules(
             elif rule in ("N5", "N6"):
                 detail = f"窗口内多点超出 ±{'2' if rule == 'N5' else '1'}σ（同侧）"
             else:
-                detail = f"连续 {end - start + 1} 个点超出 ±1σ 且呈线性分布"
+                detail = f"连续 {end - start + 1} 个点超出 ±{c1_sigma:g}σ 且呈线性分布"
             results.append(_violation(rule, start, end, ts, z, detail))
     return results

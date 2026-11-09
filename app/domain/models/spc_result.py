@@ -41,4 +41,6 @@ class SpcResult(BaseModel):
     conclusion: str = ""
     caveats: List[str] = Field(default_factory=list)
     cross_check: Optional[Dict] = None
+    limits_version_status: Optional[Dict] = None
+    peer_comparison: Optional[Dict] = None
     time_range: Dict = Field(default_factory=dict)

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @File    : test_spc.py
-@Desc    : SPC 判异 P0 单测：6 类异常模式 + 稳健性 + 工具链路。
+@Desc    : SPC 判异单测：6 类异常模式 + 稳健性 + 工具链路 + P1 能力。
            运行：uv run pytest tests/test_spc.py -q
 """
 import asyncio
@@ -28,6 +28,9 @@ def hit_rules(values, rules):
     return {v["rule"] for v in check(values, rules)}
 
 
+# ---------------------------------------------------------------------------
+# P0：算法层与工具链路
+# ---------------------------------------------------------------------------
 def test_sigma_robust_to_outliers():
     baseline = [100 + (i % 11 - 5) * 0.7 for i in range(720)]
     center, sigma, meta = estimate_sigma(baseline, "mad")
@@ -117,3 +120,62 @@ def test_tool_full_chain():
 def test_tool_unknown_device():
     result = asyncio.run(SpcTool().check_spc_rules(999))
     assert result.success is False
+
+
+# ---------------------------------------------------------------------------
+# P1：控制图 / C1 参数化 / 版本校验 / 同期对比
+# ---------------------------------------------------------------------------
+def test_c1_sigma_is_configurable():
+    values = [100.0] * 5 + [101.5, 102.0, 102.5, 103.0] + [100.0] * 10
+    ts = TS[:len(values)]
+    assert evaluate_rules(values, ts, CENTER, SIGMA, ["C1"], c1_sigma=1.0)
+    assert evaluate_rules(values, ts, CENTER, SIGMA, ["C1"], c1_sigma=2.0) == []
+
+
+def test_explain_spc_rule():
+    ok = asyncio.run(SpcTool().explain_spc_rule("C1"))
+    assert ok.success is True
+    assert ok.data["parameters"]["c1_sigma"] == 1.0
+    assert "limitation" in ok.data
+    assert asyncio.run(SpcTool().explain_spc_rule("XX")).success is False
+
+
+def test_limits_version_hard_check():
+    result = asyncio.run(SpcTool().check_spc_rules(1, expected_version="v2"))
+    assert result.success is False
+    assert "版本不匹配" in result.message
+
+
+def test_limits_version_soft_warning():
+    result = asyncio.run(SpcTool().check_spc_rules(3))
+    assert result.success is True
+    status = result.data["limits_version_status"]
+    assert status["window_changed"] is True
+    assert status["baseline_changed"] is True
+    assert result.data["grade"] == "推测"
+
+
+def test_peer_comparison():
+    result = asyncio.run(SpcTool().check_spc_rules(1, compare_peers=True))
+    assert result.success is True
+    comparison = result.data["peer_comparison"]
+    assert comparison is not None
+    peers = {p["eid"]: p for p in comparison["peers"]}
+    assert 3 in peers, "同产线同参数的 3 号机应作为对照"
+    assert peers[3]["verdict"] == "受控"
+    assert peers[3]["same_pattern"] is False
+    assert comparison["note"]
+
+
+def test_control_chart():
+    result = asyncio.run(SpcTool().plot_control_chart(1))
+    assert result.success is True
+    chart = result.data["chart"]
+    assert chart["kind"] == "line"
+    styles = {s["style"] for s in chart["series"]}
+    assert {"limit", "marker", "solid"} <= styles
+    assert chart["meta"]["control_chart"] is True
+    assert chart["meta"]["violation_points"] > 0
+    assert any("ucl_3" in row for row in chart["data"])
+    assert any(row["violation_value"] is not None for row in chart["data"])
+    assert chart["ref_lines"]

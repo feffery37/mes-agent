@@ -25,7 +25,10 @@ _INTENT_RULES = [
     ("spc", "check_spc_rules", lambda q: {"eid": 1, "window": "7d"}),
     ("判异", "check_spc_rules", lambda q: {"eid": 1, "window": "7d"}),
     ("失控", "check_spc_rules", lambda q: {"eid": 1, "window": "7d"}),
-    ("控制图", "check_spc_rules", lambda q: {"eid": 1, "window": "7d"}),
+    ("控制图", "plot_control_chart", lambda q: {"eid": 1, "window": "7d"}),
+    ("同期对比", "check_spc_rules", lambda q: {"eid": 1, "window": "7d", "compare_peers": True}),
+    ("多设备", "check_spc_rules", lambda q: {"eid": 1, "window": "7d", "compare_peers": True}),
+    ("规则解释", "explain_spc_rule", lambda q: {"rule_id": "C1"}),
     # 通知意图优先：只生成待确认草稿，是否发送仍由用户点击决定
     ("通知", "draft_notification", lambda q: {"title": "设备运维通知", "body": f"用户请求：「{q}」", "level": "warning"}),
     ("推送", "draft_notification", lambda q: {"title": "设备运维通知", "body": f"用户请求：「{q}」", "level": "warning"}),

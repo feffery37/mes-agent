@@ -57,7 +57,9 @@ function yDomain(spec: ChartSpec): [number, number] {
 export function ChartCard({ spec }: { spec: ChartSpec }) {
   const domain = yDomain(spec)
   const unit = spec.unit ?? ""
-  const showLegend = spec.series.length > 1
+  // 控制限线与判异点不进图例，避免 9 条线挤在一起
+  const visibleSeries = spec.series.filter((s) => s.style !== "limit" && s.style !== "marker")
+  const showLegend = visibleSeries.length > 1
 
   const commonAxis = (
     <>
@@ -99,20 +101,56 @@ export function ChartCard({ spec }: { spec: ChartSpec }) {
     ) : (
       <LineChart data={spec.data} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
         {commonAxis}
-        {spec.series.map((s) => (
-          <Line
-            key={s.key}
-            type="monotone"
-            dataKey={s.key}
-            name={s.name}
-            stroke={s.style === "dashed" ? "#a1a1aa" : "#111113"}
-            strokeWidth={s.style === "dashed" ? 1.4 : 1.8}
-            strokeDasharray={s.style === "dashed" ? "5 4" : undefined}
-            dot={false}
-            activeDot={{ r: 3, strokeWidth: 0, fill: s.style === "dashed" ? "#a1a1aa" : "#111113" }}
-            isAnimationActive={false}
-          />
-        ))}
+        {spec.series.map((s) => {
+          if (s.style === "limit") {
+            return (
+              <Line
+                key={s.key}
+                type="monotone"
+                dataKey={s.key}
+                name={s.name}
+                stroke="#d4d4d8"
+                strokeWidth={1}
+                strokeDasharray="3 4"
+                dot={false}
+                activeDot={false}
+                legendType="none"
+                isAnimationActive={false}
+              />
+            )
+          }
+          if (s.style === "marker") {
+            return (
+              <Line
+                key={s.key}
+                type="linear"
+                dataKey={s.key}
+                name={s.name}
+                stroke="transparent"
+                strokeWidth={0}
+                dot={{ r: 3.2, fill: "#dc2626", strokeWidth: 0 }}
+                activeDot={false}
+                connectNulls={false}
+                legendType="none"
+                isAnimationActive={false}
+              />
+            )
+          }
+          return (
+            <Line
+              key={s.key}
+              type="monotone"
+              dataKey={s.key}
+              name={s.name}
+              stroke={s.style === "dashed" ? "#a1a1aa" : "#111113"}
+              strokeWidth={s.style === "dashed" ? 1.4 : 1.8}
+              strokeDasharray={s.style === "dashed" ? "5 4" : undefined}
+              dot={false}
+              activeDot={{ r: 3, strokeWidth: 0, fill: s.style === "dashed" ? "#a1a1aa" : "#111113" }}
+              isAnimationActive={false}
+            />
+          )
+        })}
         {refLines}
       </LineChart>
     )
@@ -131,6 +169,13 @@ export function ChartCard({ spec }: { spec: ChartSpec }) {
           {chart}
         </ResponsiveContainer>
       </div>
+      {Boolean(spec.meta?.control_chart) && (
+        <div className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
+          虚线：CL 与 ±1 / ±2 / ±3σ 控制限 · 红点：超出 ±3σ 的点 {String(spec.meta?.violation_points ?? "-")} 个 ·
+          规格限见参考线 · LIMITS_VERSION {String(spec.meta?.limits_version ?? "-")} ·
+          结论【{String(spec.meta?.grade ?? "-")}】
+        </div>
+      )}
     </div>
   )
 }

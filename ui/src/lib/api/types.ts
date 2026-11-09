@@ -14,7 +14,8 @@ export interface ChartSeries {
   /** 对应 data 中的字段名 */
   key: string
   name: string
-  style?: "solid" | "dashed"
+  /** limit：SPC 控制限虚线；marker：判异点散点（不连线、不进图例） */
+  style?: "solid" | "dashed" | "limit" | "marker"
 }
 
 export interface ChartRefLine {
@@ -28,7 +29,7 @@ export interface ChartSpec {
   x_label?: string
   y_label?: string
   unit?: string
-  data: Array<Record<string, string | number>>
+  data: Array<Record<string, string | number | null>>
   series: ChartSeries[]
   ref_lines?: ChartRefLine[]
   meta?: Record<string, unknown>

@@ -45,7 +45,11 @@ spc:
   rules: ["N1", "N2", "N3", "N5", "N6", "C1"]
   n_min: 10                   # 少于该点数直接【无法判断】
   downgrade_n: 30             # 少于该点数降级【推测】
-  c1_min_points: 3            # 自定义规则：连续几点超 ±1σ 且呈线性
+  c1_min_points: 3            # C1：连续几点越界且呈线性
   c1_min_slope: 0.0
+  c1_sigma: 1.0               # C1 越界阈值（单位 sigma），可配成 1.5 / 2.0
   require_two_rules: true     # 防误报：非 critical 时需 ≥2 条规则才判「失控」
   max_segments_per_rule: 5    # 同规则多段明细展示上限（总数仍如实给出）
+  expected_limits_version: "" # 非空时强制校验 LIMITS_VERSION，不匹配直接拒绝判定
+  compare_peers_by_default: false
+  control_chart_max_points: 72
