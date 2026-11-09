@@ -2,17 +2,20 @@
 # -*- coding: utf-8 -*-
 """
 @File    : test_spc.py
-@Desc    : SPC 判异单测：6 类异常模式 + 稳健性 + 工具链路 + P1 能力。
+@Desc    : SPC 判异单测：规则模式 + 稳健性 + P1/P2 工具链路。
            运行：uv run pytest tests/test_spc.py -q
 """
 import asyncio
 
+from app.domain.services.analysis.process_capability import compute_capability
 from app.domain.services.analysis.spc import (
     build_limits,
     estimate_sigma,
     evaluate_rules,
 )
+from app.domain.services.analysis.spc_sop import match_sops
 from app.domain.services.tools.spc import SpcTool
+from core.config import get_app_config
 
 CENTER = 100.0
 SIGMA = 1.0
@@ -38,7 +41,7 @@ def test_sigma_robust_to_outliers():
     assert 1.5 < sigma < 4.0
     assert meta["method"] == "mad"
 
-    polluted = baseline + [118.0] * 20  # 约 2.7% 污染
+    polluted = baseline + [118.0] * 20
     center2, sigma2, _ = estimate_sigma(polluted, "mad")
     assert abs(center2 - center) < 0.5
     assert abs(sigma2 - sigma) < 0.5, "离群点不应显著改变 sigma"
@@ -179,3 +182,96 @@ def test_control_chart():
     assert any("ucl_3" in row for row in chart["data"])
     assert any(row["violation_value"] is not None for row in chart["data"])
     assert chart["ref_lines"]
+
+
+# ---------------------------------------------------------------------------
+# P2：过程能力 / 白名单 / SOP 联动
+# ---------------------------------------------------------------------------
+def test_capability_symmetric_process():
+    cap = compute_capability([100.0] * 60, 100.0, 1.0, 94.0, 106.0)
+    assert cap["available"] is True
+    assert cap["cp"] == 2.0 and cap["cpk"] == 2.0
+    assert cap["level"] == "充足" and cap["valid"] is True
+    assert cap["grade"] == "数据支持"
+
+
+def test_capability_shifted_mean():
+    cap = compute_capability([103.0] * 60, 100.0, 1.0, 94.0, 106.0)
+    assert cap["cp"] == 2.0
+    assert cap["cpu"] == 1.0 and cap["cpk"] == 1.0
+    assert cap["level"] == "勉强"
+
+
+def test_capability_invalid_inputs():
+    assert compute_capability([100.0] * 10, 100.0, 1.0, None, 106.0)["available"] is False
+    assert compute_capability([100.0] * 10, 100.0, 0.0, 94.0, 106.0)["available"] is False
+
+
+def test_capability_uncontrolled_is_not_valid():
+    cap = compute_capability([100.0] * 60, 100.0, 1.0, 94.0, 106.0, controlled=False)
+    assert cap["valid"] is False and cap["grade"] == "推测"
+    assert any("放行" in c for c in cap["caveats"])
+    cap2 = compute_capability([100.0] * 60, 100.0, 1.0, 94.0, 106.0, version_ok=False)
+    assert cap2["valid"] is False
+    assert any("LIMITS_VERSION" in c for c in cap2["caveats"])
+
+
+def test_whitelist_exclusions():
+    data = asyncio.run(SpcTool().check_spc_rules(1)).data
+    assert len(data["exclusions"]) == 2
+    assert {"传感器跳变", "停机"} == {e["reason"] for e in data["exclusions"]}
+    assert data["effective_n"] == data["n"] - 2
+    assert any("白名单" in c for c in data["caveats"])
+
+
+def test_whitelist_toggle_changes_n1():
+    tool = SpcTool()
+    cfg = get_app_config().spc
+    original = cfg.exclude_flagged_points
+    try:
+        cfg.exclude_flagged_points = True
+        on = asyncio.run(tool.check_spc_rules(1)).data
+        on_idx = {i for v in on["violations"] if v["rule"] == "N1" for i in v["indices"]}
+        assert 50 not in on_idx, "豁免点不应参与判异"
+
+        cfg.exclude_flagged_points = False
+        off = asyncio.run(tool.check_spc_rules(1)).data
+        off_idx = {i for v in off["violations"] if v["rule"] == "N1" for i in v["indices"]}
+        assert 50 in off_idx, "关闭白名单后跳变点应被判为异常"
+        assert off["exclusions"] == []
+    finally:
+        cfg.exclude_flagged_points = original
+
+
+def test_sop_linking():
+    data = asyncio.run(SpcTool().check_spc_rules(1)).data
+    sops = data["related_sops"]
+    assert sops, "命中规则应自动关联知识库 SOP"
+    assert "SOP-EQ-0310" in {s["id"] for s in sops}
+    assert any(s["matched_rules"] for s in sops)
+    assert any("SOP" in c for c in data["caveats"])
+    assert "SOP" in data["conclusion"]
+
+
+def test_match_sops_pure():
+    docs = [
+        {"id": "A", "model": "M1", "spc_rules": ["N1", "N3"], "cases": 5},
+        {"id": "B", "model": "M2", "spc_rules": ["N1"], "cases": 9},
+        {"id": "C", "model": "", "exclude_reasons": ["停机"], "cases": 1},
+    ]
+    result = match_sops(docs, ["N1", "N3"], model="M1", reasons=["停机"], max_results=2)
+    assert [d["id"] for d in result] == ["A", "C"]
+    assert result[0]["matched_rules"] == ["N1", "N3"]
+    assert result[1]["matched_reasons"] == ["停机"]
+    assert match_sops(docs, [], model="M1") == []
+
+
+def test_capability_tool():
+    result = asyncio.run(SpcTool().compute_process_capability(1))
+    assert result.success is True
+    data = result.data
+    assert data["capability"]["available"] is True
+    assert "cpk" in data["capability"]
+    assert data["capability"]["valid"] is False, "1 号机失控，Cpk 不应具备放行解释力"
+    assert "不得用于质量放行" in data["conclusion"]
+    assert data["effective_n"] == data["n"] - len(data["exclusions"])

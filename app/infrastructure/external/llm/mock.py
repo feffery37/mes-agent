@@ -29,6 +29,9 @@ _INTENT_RULES = [
     ("同期对比", "check_spc_rules", lambda q: {"eid": 1, "window": "7d", "compare_peers": True}),
     ("多设备", "check_spc_rules", lambda q: {"eid": 1, "window": "7d", "compare_peers": True}),
     ("规则解释", "explain_spc_rule", lambda q: {"rule_id": "C1"}),
+    ("Cpk", "compute_process_capability", lambda q: {"eid": 1, "window": "7d"}),
+    ("cpk", "compute_process_capability", lambda q: {"eid": 1, "window": "7d"}),
+    ("过程能力", "compute_process_capability", lambda q: {"eid": 1, "window": "7d"}),
     # 通知意图优先：只生成待确认草稿，是否发送仍由用户点击决定
     ("通知", "draft_notification", lambda q: {"title": "设备运维通知", "body": f"用户请求：「{q}」", "level": "warning"}),
     ("推送", "draft_notification", lambda q: {"title": "设备运维通知", "body": f"用户请求：「{q}」", "level": "warning"}),

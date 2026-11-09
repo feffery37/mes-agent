@@ -111,6 +111,12 @@ class SpcConfig(BaseModel):
     expected_limits_version: str = ""   # 非空时强制校验口径版本
     compare_peers_by_default: bool = False
     control_chart_max_points: int = 72
+    exclude_flagged_points: bool = True  # 停机 / 试产等标记点不参与判异
+    exclude_reasons: List[str] = Field(default_factory=lambda: [
+        "停机", "试产批次", "复测口径切换", "测试账号", "传感器跳变"])
+    max_related_sops: int = 3
+    capability_min_cpk: float = 1.33
+    capability_warn_cpk: float = 1.0
 
 
 class AppConfig(BaseModel):

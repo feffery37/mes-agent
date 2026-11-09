@@ -43,4 +43,7 @@ class SpcResult(BaseModel):
     cross_check: Optional[Dict] = None
     limits_version_status: Optional[Dict] = None
     peer_comparison: Optional[Dict] = None
+    effective_n: Optional[int] = None
+    exclusions: List[Dict] = Field(default_factory=list)
+    related_sops: List[Dict] = Field(default_factory=list)
     time_range: Dict = Field(default_factory=dict)

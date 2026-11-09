@@ -53,3 +53,8 @@ spc:
   expected_limits_version: "" # 非空时强制校验 LIMITS_VERSION，不匹配直接拒绝判定
   compare_peers_by_default: false
   control_chart_max_points: 72
+  exclude_flagged_points: true  # 停机/试产等标记点不参与判异，且中断游程
+  exclude_reasons: ["停机", "试产批次", "复测口径切换", "测试账号", "传感器跳变"]
+  max_related_sops: 3           # 判异结果自动关联的 SOP 上限
+  capability_min_cpk: 1.33      # Cpk 充足阈值
+  capability_warn_cpk: 1.0

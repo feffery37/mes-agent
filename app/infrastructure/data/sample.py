@@ -95,6 +95,12 @@ PARAM_TS: Dict[int, Dict[str, List[Dict]]] = {
     3: {"TEMP_NOZZLE": _gen_stable_series(196.0, 168)},
 }
 
+# 当前窗口注入业务标记点（P2 白名单演示）：传感器跳变 + 停机记录。
+# 真实环境由 MES 停机记录 / 试产工单按时间范围下发，这里用点标记模拟。
+_nozzle = PARAM_TS[1]["TEMP_NOZZLE"]
+_nozzle[50].update({"value": 260.0, "excluded": True, "reason": "传感器跳变"})
+_nozzle[51].update({"excluded": True, "reason": "停机"})
+
 # ---------------------------------------------------------------------------
 # 3.1 受控基线期 EQ_PARAM_BASELINE（SPC 用于估计 center / sigma）
 #     紧接在当前 168 小时窗口之前；少量点标记停机 / 试产 / 复测口径并排除。
@@ -160,6 +166,7 @@ KB_DOCUMENT: List[Dict] = [
         "content": "1) 停机检查加热棒与热电偶；2) 校准温控模块；3) 准备备件 HB-200 并安排计划性更换。",
         "cases": 4,
         "root_cause": "加热棒老化(3/4)",
+        "spc_rules": ["N1", "N2", "N3", "N6", "C1"],
     },
     {
         "id": "SOP-EQ-0201",
@@ -169,6 +176,30 @@ KB_DOCUMENT: List[Dict] = [
         "content": "1) 清洁吸嘴与过滤器；2) 检查真空泵压力；3) 更换磨损吸嘴。",
         "cases": 2,
         "root_cause": "真空管路堵塞(1/2)",
+        "spc_rules": [],
+    },
+    {
+        "id": "SOP-EQ-0310",
+        "title": "控制图判异失控处置流程",
+        "model": "",
+        "symptom": "SPC 判异失控 / 趋势漂移",
+        "content": "1) 先核对 LIMITS_VERSION 与复测口径；2) 排除停机、试产批次与传感器跳变点后重新判异；"
+                    "3) 通知设备工程师按流程复测并记录；4) 工艺参数调整须走变更流程，不得直接给出数值。",
+        "cases": 6,
+        "root_cause": "需现场复核（未验证）",
+        "spc_rules": ["N1", "N2", "N3", "N5", "N6", "C1"],
+    },
+    {
+        "id": "SOP-EQ-0311",
+        "title": "停机与试产批次数据排查",
+        "model": "",
+        "symptom": "异常点疑似由停机 / 试产引起",
+        "content": "1) 核对 MES 停机记录与试产工单时间范围；2) 对标记点做豁免并留痕；"
+                    "3) 豁免后重新计算控制限与 Cpk；4) 不得直接删除原始记录。",
+        "cases": 3,
+        "root_cause": "数据口径问题（待确认）",
+        "spc_rules": [],
+        "exclude_reasons": ["停机", "试产批次", "传感器跳变"],
     },
 ]
 
