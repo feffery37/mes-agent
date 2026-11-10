@@ -121,6 +121,11 @@ uv run uvicorn app.main:app --reload --port 8000
 
 ![趋势分析对话](docs/images/ui-preview.png)
 
+SPC 判异与人在回路：待确认工单卡片、带【数据支持】分级的结论（指标 / 数值 / 对比基准 / 样本量 n / 时间范围），
+以及白名单豁免标记点、知识库 SOP 联动的定量结果：
+
+![SPC 判异与人工确认](docs/images/ui-spc-hitl.png)
+
 ```bash
 # 另开终端，进入前端目录
 cd ui
