@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import "./globals.css"
 import { StatusPill } from "@/components/status-pill"
+import { AppSidebar } from "@/components/layout/app-sidebar"
+import { SidebarToggle } from "@/components/layout/sidebar-toggle"
 
 export const metadata: Metadata = {
   title: "iMES 设备洞察 Agent",
@@ -19,11 +21,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <div className="text-sm font-semibold tracking-tight">iMES 设备洞察 Agent</div>
             <div className="mt-0.5 text-xs text-muted-foreground">查现状 · 看趋势 · 找原因 · 问对策</div>
           </div>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <SidebarToggle />
             <StatusPill />
           </div>
         </header>
-        {children}
+        <div className="flex min-h-0 flex-1">
+          <AppSidebar />
+          <div className="min-w-0 flex-1">{children}</div>
+        </div>
       </body>
     </html>
   )

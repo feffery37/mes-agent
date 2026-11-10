@@ -105,6 +105,9 @@ uv run uvicorn app.main:app --reload --port 8000
 前端工程位于 `ui/`（Next.js 16 + React 19 + TypeScript + Tailwind 4 + Radix/shadcn 风格组件），
 通过 `POST /api/chat/stream` 的 SSE 流实时展示「工具调用过程 + 最终结论」，并支持多轮对话（复用 `session_id`）。
 
+页面左侧为「工作台」侧栏（P0）：功能列表（查现状 / 看趋势 / 问对策，纯前端展示、不绑定任何调用）、运行状态；
+桌面可折叠、窄屏为抽屉。侧栏不触发任何分析、模型调用或通知。
+
 #### 界面预览
 
 首页空状态与示例提问：
