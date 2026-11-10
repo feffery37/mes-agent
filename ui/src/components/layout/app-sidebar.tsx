@@ -1,15 +1,65 @@
 "use client"
 
-import { useEffect } from "react"
-import { ChevronLeft, ChevronRight, X } from "lucide-react"
+import { useEffect, useState } from "react"
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Inbox,
+  LayoutGrid,
+  MessageSquare,
+  Plus,
+  X,
+  type LucideIcon,
+} from "lucide-react"
 import { useSidebar } from "@/hooks/use-sidebar"
 import { cn } from "@/lib/utils"
 import { QuickActions } from "./quick-actions"
 import { RuntimeCard } from "./runtime-card"
+import { SessionList } from "./session-list"
+import { PendingInbox } from "./pending-inbox"
+import { useWorkspace, type SidebarTab } from "./workspace-provider"
 
-/** 左侧工作台：桌面常驻（可折叠），窄屏为抽屉。内容均为只读展示。 */
+function TabButton({
+  active,
+  onClick,
+  icon: Icon,
+  label,
+  count,
+}: {
+  active: boolean
+  onClick: () => void
+  icon: LucideIcon
+  label: string
+  count?: number
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs transition-colors",
+        active
+          ? "bg-secondary text-foreground"
+          : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+      )}
+    >
+      <Icon className="h-3.5 w-3.5" strokeWidth={1.7} />
+      {label}
+      {!!count && (
+        <span className="grid h-4 min-w-4 place-items-center rounded-full bg-foreground px-1 text-[10px] font-medium text-background">
+          {count}
+        </span>
+      )}
+    </button>
+  )
+}
+
+/** 左侧工作台（P1）：会话列表 + 待确认收件箱 + 纯展示功能列表 + 运行状态。 */
 export function AppSidebar() {
   const { collapsed, toggleCollapsed, mobileOpen, closeMobile } = useSidebar()
+  const { tab, setTab, inbox, newSession } = useWorkspace()
+  const [featuresOpen, setFeaturesOpen] = useState(false)
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -18,6 +68,14 @@ export function AppSidebar() {
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
   }, [closeMobile])
+
+  const openTab = (next: SidebarTab) => {
+    setTab(next)
+    if (collapsed) toggleCollapsed()
+  }
+
+  const compactButton =
+    "grid h-9 w-9 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
 
   const renderContent = (compact: boolean, onClose?: () => void) => (
     <>
@@ -46,22 +104,100 @@ export function AppSidebar() {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-2 py-3">
-        <QuickActions compact={compact} />
-        <div className="my-3 h-px bg-border" />
-        {compact ? (
-          <div className="flex justify-center">
+      {compact ? (
+        <div className="flex flex-1 flex-col items-center gap-1 px-2 py-3">
+          <button
+            type="button"
+            title="新建会话"
+            aria-label="新建会话"
+            onClick={() => {
+              newSession()
+              if (collapsed) toggleCollapsed()
+            }}
+            className={compactButton}
+          >
+            <Plus className="h-4 w-4" strokeWidth={1.8} />
+          </button>
+          <button type="button" title="会话列表" aria-label="会话列表" onClick={() => openTab("sessions")} className={compactButton}>
+            <MessageSquare className="h-4 w-4" strokeWidth={1.8} />
+          </button>
+          <button
+            type="button"
+            title="待确认收件箱"
+            aria-label="待确认收件箱"
+            onClick={() => openTab("inbox")}
+            className={cn("relative", compactButton)}
+          >
+            <Inbox className="h-4 w-4" strokeWidth={1.8} />
+            {inbox.length > 0 && (
+              <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-foreground" />
+            )}
+          </button>
+          <div className="my-1.5 h-px w-6 bg-border" />
+          <button
+            type="button"
+            title="功能列表（纯展示）"
+            aria-label="功能列表"
+            onClick={() => {
+              toggleCollapsed()
+              setFeaturesOpen(true)
+            }}
+            className={compactButton}
+          >
+            <LayoutGrid className="h-4 w-4" strokeWidth={1.8} />
+          </button>
+          <div className="mt-auto py-2">
             <RuntimeCard compact />
           </div>
-        ) : (
-          <RuntimeCard />
-        )}
-      </div>
-
-      {!compact && (
-        <div className="shrink-0 border-t border-border px-3 py-2 text-[10px] text-muted-foreground">
-          P0 侧栏 · 只读展示
         </div>
+      ) : (
+        <>
+          <div className="flex shrink-0 gap-1 border-b border-border px-2 py-2">
+            <TabButton
+              active={tab === "sessions"}
+              onClick={() => setTab("sessions")}
+              icon={MessageSquare}
+              label="会话"
+            />
+            <TabButton
+              active={tab === "inbox"}
+              onClick={() => setTab("inbox")}
+              icon={Inbox}
+              label="待确认"
+              count={inbox.length}
+            />
+          </div>
+
+          <div className="flex min-h-0 flex-1 flex-col px-2 py-2.5">
+            {tab === "sessions" ? <SessionList onNavigate={onClose} /> : <PendingInbox />}
+          </div>
+
+          <div className="shrink-0 border-t border-border">
+            <button
+              type="button"
+              onClick={() => setFeaturesOpen((value) => !value)}
+              className="flex w-full items-center gap-1.5 px-3 py-2 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <LayoutGrid className="h-3 w-3" strokeWidth={1.8} />
+              功能列表
+              <ChevronDown
+                className={cn("ml-auto h-3 w-3 transition-transform", featuresOpen && "rotate-180")}
+              />
+            </button>
+            {featuresOpen && (
+              <div className="max-h-52 overflow-y-auto px-2 pb-2">
+                <QuickActions />
+              </div>
+            )}
+          </div>
+
+          <div className="shrink-0 border-t border-border px-2 py-2">
+            <RuntimeCard />
+          </div>
+          <div className="shrink-0 border-t border-border px-3 py-1.5 text-[10px] text-muted-foreground">
+            P1 侧栏 · 会话与收件箱
+          </div>
+        </>
       )}
     </>
   )

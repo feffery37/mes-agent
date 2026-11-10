@@ -105,8 +105,8 @@ uv run uvicorn app.main:app --reload --port 8000
 前端工程位于 `ui/`（Next.js 16 + React 19 + TypeScript + Tailwind 4 + Radix/shadcn 风格组件），
 通过 `POST /api/chat/stream` 的 SSE 流实时展示「工具调用过程 + 最终结论」，并支持多轮对话（复用 `session_id`）。
 
-页面左侧为「工作台」侧栏（P0）：功能列表（查现状 / 看趋势 / 问对策，纯前端展示、不绑定任何调用）、运行状态；
-桌面可折叠、窄屏为抽屉。侧栏不触发任何分析、模型调用或通知。
+页面左侧为「工作台」侧栏（P1）：会话列表、待确认收件箱、功能列表（纯前端展示、不绑定任何调用）与运行状态；
+桌面可折叠、窄屏为抽屉。会话与收件箱详见第十章。
 
 #### 界面预览
 
@@ -145,12 +145,13 @@ npm run dev        # 开发服务器，默认 http://localhost:3000
 > ui/src/
 > ├── app/                # 页面（layout.tsx 顶栏 + page.tsx 对话页）
 > ├── components/
+> │   ├── layout/         # 侧栏（应用壳 / 会话列表 / 待确认收件箱 / 运行状态）+ 工作台共享状态
 > │   ├── ui/             # shadcn 风格基础组件（button/card/input/textarea/badge/avatar/scroll-area/separator）
 > │   ├── tool-use/       # 工具调用可视化卡片（calling/called 状态、入参与返回）
 > │   ├── chart/          # 图表渲染（Recharts：趋势折线图 / 报警分布柱状图 / 风险柱状图）
 > │   └── status-pill.tsx # 顶栏 LLM 状态指示
-> ├── hooks/use-chat.ts   # 管理对话轮次与流式事件
-> └── lib/api/            # 类型定义 / 配置 / SSE 客户端 / 状态接口
+> ├── hooks/use-sidebar.ts# 侧栏折叠 / 抽屉状态（对话状态见 layout/workspace-provider.tsx）
+> └── lib/api/            # 类型定义 / 配置 / SSE 客户端 / 收件箱 / 确认 / 状态接口
 > ```
 
 ### 两种 LLM 模式
@@ -362,3 +363,44 @@ else            -> 趋势不显著（样本不足以断定方向）
 以上工具均为**只读**，不新增 HTTP 接口、不触发自动通知。
 
 > 后续可扩展：按设备订阅的规则集、豁免原因与 MES 停机工单按时间范围自动对接、Cpk 趋势看板。
+
+---
+
+## 十、会话列表与待确认收件箱（P1）
+
+侧栏 P1 解决两个实际问题：**一个页面只能有一个会话**，以及**待确认令牌只存在于当前对话卡片里**——
+刷新页面或切换会话后，草稿仍在后端，但前端再也拿不到 `confirm_token`，人就无法确认。
+
+### 10.1 会话列表
+
+| 项 | 说明 |
+| --- | --- |
+| 存储 | 浏览器 `localStorage`（`imes.workspace.v1`），最多 30 个会话；SSE 分片防抖 300ms 写入 |
+| 上下文隔离 | 每个会话持有独立的后端 `session_id`，切换后多轮记忆不串台 |
+| 操作 | 新建 / 切换 / 删除；标题取第一条提问前 18 字，列表按最近活跃时间排序 |
+| 流式正确性 | SSE 事件按发起时的会话 ID 写入，分析过程中切走会话也不会写到别的会话 |
+| 恢复 | 刷新后恢复所有轮次，残留的 `streaming` 态统一复位为已结束 |
+
+### 10.2 待确认收件箱
+
+`GET /api/inbox/pending` 是**只读聚合接口**，把分散在 `WorkOrderTool._PENDING` 与
+`NotificationService._pending` 的草稿汇总成统一视图（类型、标题、摘要、草稿内容、剩余有效期），按生成时间倒序；
+读取时各自清理过期项。该接口**不是 `@tool`**，LLM 不可见、无法调用。
+
+| 项 | 说明 |
+| --- | --- |
+| 前端 | 侧栏「待确认」tab，20 秒轮询 + 手动刷新；显示数量角标，后端不可达时明确提示 |
+| 确认动作 | 仍只走 `POST /api/workorder/confirm`、`POST /api/notify/confirm`，**必须由用户点击**；接口不暴露给模型 |
+| 双入口联动 | 对话卡片与收件箱共用 `WorkspaceProvider` 的 `resolved` 状态，一次性令牌不会被重复提交；结果本地持久化，刷新后卡片仍显示「已创建 / 已发送」 |
+| 合规 | 收件箱只做「列出 + 由人点击」，不引入事件旁路、阈值规则或自动发送 |
+
+### 10.3 分层落点
+
+- 后端：`app/interfaces/endpoints/inbox_routes.py`（聚合只读接口）、
+  `app/domain/services/tools/workorder.py::list_workorder_pending()`、
+  `app/application/services/notification_service.py::list_pending()`；单测 `tests/test_inbox.py`
+- 前端：`ui/src/components/layout/workspace-provider.tsx`（共享状态）、`session-list.tsx`、`pending-inbox.tsx`、
+  `ui/src/lib/api/inbox.ts`；`layout.tsx` 注入 Provider，`page.tsx` 与侧栏共用同一份会话状态
+
+> 现状限制：草稿与工单都保存在后端进程内存，重启服务会清空；生产环境需补鉴权（收件箱会返回 `confirm_token`）
+> 与持久化存储，并考虑按用户 / 班组隔离可见范围。

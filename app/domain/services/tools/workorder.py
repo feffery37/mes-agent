@@ -29,6 +29,29 @@ def _purge_expired() -> None:
         _PENDING.pop(token, None)
 
 
+def list_workorder_pending() -> list[dict]:
+    """只读：列出待人工确认的工单申请，供收件箱聚合（不是 @tool，LLM 不可见）。"""
+    _purge_expired()
+    now = datetime.now()
+    ttl_seconds = int(_TOKEN_TTL.total_seconds())
+    items = []
+    for token, pending in _PENDING.items():
+        draft = pending["draft"]
+        items.append({
+            "confirm_token": token,
+            "kind": "workorder",
+            "title": draft["title"],
+            "summary": f"设备 {draft['eid']} · 优先级 {draft['priority']}",
+            "draft": draft,
+            "created_at": pending["created_at"].isoformat(timespec="seconds"),
+            "expires_in_seconds": ttl_seconds,
+            "remaining_seconds": max(
+                0, int((_TOKEN_TTL - (now - pending["created_at"])).total_seconds())
+            ),
+        })
+    return items
+
+
 class WorkOrderTool(BaseTool):
     """维修工单工具集（写操作需人工确认，人在回路）。
 

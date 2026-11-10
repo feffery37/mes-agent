@@ -63,6 +63,29 @@ class NotificationService:
         for token in [t for t, p in self._pending.items() if now - p["created_at"] > self._ttl]:
             self._pending.pop(token, None)
 
+    def list_pending(self) -> list[dict]:
+        """只读：列出待人工确认的通知草稿，供收件箱聚合（不是 @tool，LLM 不可见）。"""
+        self._purge_expired()
+        now = datetime.now()
+        ttl_seconds = int(self._ttl.total_seconds())
+        items = []
+        for token, pending in self._pending.items():
+            notification: Notification = pending["notification"]
+            channels = "、".join(notification.channels) or "默认渠道"
+            items.append({
+                "confirm_token": token,
+                "kind": "notification",
+                "title": notification.title,
+                "summary": f"{notification.level.value} · {channels}",
+                "draft": notification.model_dump(mode="json"),
+                "created_at": pending["created_at"].isoformat(timespec="seconds"),
+                "expires_in_seconds": ttl_seconds,
+                "remaining_seconds": max(
+                    0, int((self._ttl - (now - pending["created_at"])).total_seconds())
+                ),
+            })
+        return items
+
     def create_draft(self, notification: Notification) -> Tuple[str, int]:
         """登记一张待人工确认的草稿，返回 (confirm_token, 有效秒数)。"""
         self._purge_expired()

@@ -3,6 +3,7 @@ import "./globals.css"
 import { StatusPill } from "@/components/status-pill"
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { SidebarToggle } from "@/components/layout/sidebar-toggle"
+import { WorkspaceProvider } from "@/components/layout/workspace-provider"
 
 export const metadata: Metadata = {
   title: "iMES 设备洞察 Agent",
@@ -26,10 +27,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <StatusPill />
           </div>
         </header>
-        <div className="flex min-h-0 flex-1">
-          <AppSidebar />
-          <div className="min-w-0 flex-1">{children}</div>
-        </div>
+        <WorkspaceProvider>
+          <div className="flex min-h-0 flex-1">
+            <AppSidebar />
+            <div className="min-w-0 flex-1">{children}</div>
+          </div>
+        </WorkspaceProvider>
       </body>
     </html>
   )

@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Send, X, Loader2, Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { confirmNotification } from "@/lib/api/notification"
+import { useWorkspace } from "@/components/layout/workspace-provider"
 import type { NotificationDraft } from "@/lib/api/types"
 
 const LEVEL_LABEL: Record<string, string> = {
@@ -13,9 +13,7 @@ const LEVEL_LABEL: Record<string, string> = {
   critical: "高风险",
 }
 
-type CardState = "idle" | "submitting" | "sent" | "cancelled" | "error"
-
-/** 人在回路确认卡片：对外通知必须由此处的人工点击触发。 */
+/** 人在回路确认卡片：与侧栏收件箱共用同一份确认状态，避免两处重复发送。 */
 export function NotificationConfirmCard({
   token,
   draft,
@@ -25,26 +23,27 @@ export function NotificationConfirmCard({
   draft: NotificationDraft
   expiresIn?: number
 }) {
-  const [state, setState] = useState<CardState>("idle")
+  const { resolved, resolve } = useWorkspace()
+  const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
+  const resolution = resolved[token]
 
-  const act = async (action: "send" | "cancel") => {
-    setState("submitting")
+  const act = async (action: "confirm" | "cancel") => {
+    setSubmitting(true)
     setError("")
     try {
-      const res = await confirmNotification(token, action)
-      if (!res.success) throw new Error(res.message || "操作失败")
-      setState(action === "cancel" ? "cancelled" : "sent")
+      await resolve("notification", token, action)
     } catch (e) {
       setError(e instanceof Error ? e.message : "操作失败")
-      setState("error")
+    } finally {
+      setSubmitting(false)
     }
   }
 
   const badge =
-    state === "sent" ? (
+    resolution?.state === "done" ? (
       <Badge variant="success" className="ml-auto">已发送</Badge>
-    ) : state === "cancelled" ? (
+    ) : resolution?.state === "cancelled" ? (
       <Badge className="ml-auto">已忽略</Badge>
     ) : (
       <Badge variant="warning" className="ml-auto">待人工确认</Badge>
@@ -75,11 +74,14 @@ export function NotificationConfirmCard({
       <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
         Agent 只能生成草稿，发送需你确认后才会执行
         {expiresIn ? ` · ${Math.round(expiresIn / 60)} 分钟内有效` : ""}。
+        也可在左侧「待确认」收件箱中处理。
       </p>
 
-      {state === "sent" || state === "cancelled" ? (
+      {resolution ? (
         <p className="mt-3 text-xs text-foreground">
-          {state === "sent" ? "已发送通知" : "已忽略，未发送任何通知"}
+          {resolution.state === "done"
+            ? `已发送通知${resolution.label ? ` · ${resolution.label}` : ""}`
+            : "已忽略，未发送任何通知"}
         </p>
       ) : (
         <>
@@ -87,11 +89,11 @@ export function NotificationConfirmCard({
           <div className="mt-3 flex gap-2">
             <Button
               size="sm"
-              disabled={state === "submitting"}
-              onClick={() => act("send")}
+              disabled={submitting}
+              onClick={() => act("confirm")}
               className="h-8 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              {state === "submitting" ? (
+              {submitting ? (
                 <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
               ) : (
                 <Send className="mr-1.5 h-3.5 w-3.5" />
@@ -101,7 +103,7 @@ export function NotificationConfirmCard({
             <Button
               size="sm"
               variant="outline"
-              disabled={state === "submitting"}
+              disabled={submitting}
               onClick={() => act("cancel")}
               className="h-8 rounded-lg"
             >

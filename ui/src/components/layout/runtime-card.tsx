@@ -61,7 +61,7 @@ export function RuntimeCard({ compact = false }: { compact?: boolean }) {
           </div>
         ))}
         <div className="mt-1.5 border-t border-border pt-1.5 text-[10px] leading-relaxed text-muted-foreground">
-          数据来自 /api/status，30 秒刷新；P0 侧栏仅提供只读入口
+          数据来自 /api/status，30 秒刷新；侧栏不触发分析或通知
         </div>
       </div>
     </div>

@@ -127,6 +127,25 @@ export interface NotificationConfirmResponse {
   }
 }
 
+/** GET /api/inbox/pending 返回：两类待人工确认草稿的统一视图 */
+export type PendingKind = "workorder" | "notification"
+
+export interface PendingItem {
+  confirm_token: string
+  kind: PendingKind
+  title: string
+  summary: string
+  draft: Record<string, unknown>
+  created_at: string
+  expires_in_seconds: number
+  remaining_seconds: number
+}
+
+export interface PendingInboxResponse {
+  items: PendingItem[]
+  total: number
+}
+
 /** GET /api/status 返回 */
 export interface StatusResponse {
   service: string

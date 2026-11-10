@@ -10,7 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { ToolUseList } from "@/components/tool-use"
 import { WorkOrderConfirmCard } from "@/components/tool-use/workorder-confirm-card"
 import { NotificationConfirmCard } from "@/components/tool-use/notification-confirm-card"
-import { useChat } from "@/hooks/use-chat"
+import { useWorkspace } from "@/components/layout/workspace-provider"
 import type { PendingConfirmation, PendingNotification } from "@/lib/api/types"
 
 const EXAMPLES = [
@@ -22,7 +22,7 @@ const EXAMPLES = [
 ]
 
 export default function Page() {
-  const { turns, send, busy } = useChat()
+  const { turns, send, busy } = useWorkspace()
   const [input, setInput] = useState("")
   const bottomRef = useRef<HTMLDivElement>(null)
 
